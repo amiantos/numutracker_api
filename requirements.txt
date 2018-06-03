@@ -1,0 +1,9 @@
+Flask
+Flask-OAuthlib==0.9.3
+Flask-sqlalchemy
+SQLAlchemy
+SQLAlchemy-Utils
+Werkzeug
+celery
+oauthlib
+psycopg2

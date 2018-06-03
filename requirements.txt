@@ -6,4 +6,4 @@ SQLAlchemy-Utils
 Werkzeug
 celery
 oauthlib
-psycopg2
+psycopg2-binary

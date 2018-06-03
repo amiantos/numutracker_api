@@ -3,9 +3,6 @@ services:
   api:
     restart: always
     build: .
-    env_file:
-      - docker.base.env
-    #  - docker.local.env
     ports:
       - "80:80"
     networks:

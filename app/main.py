@@ -3,10 +3,13 @@ from flask import Flask
 
 app = Flask(__name__)
 
+app.config.from_object('config')
+app.config.from_envvar('NUMU_SETTINGS')
+
 
 @app.route("/")
 def hello():
-    return "Numu Tracker API"
+    return "Numu Tracker API {}".format(app.config.get('NUMU_ENVIRONMENT'))
 
 
 if __name__ == "__main__":

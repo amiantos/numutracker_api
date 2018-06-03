@@ -1,12 +1,10 @@
-import os
 from flask import Flask
 
 
 app = Flask(__name__)
 
-app.config.from_object('config')
-if "NUMU_SETTINGS" in os.environ:
-    app.config.from_envvar('NUMU_SETTINGS')
+app.config.from_object('config.dev')
+app.config.from_object('config.prod')
 
 
 @app.route("/")

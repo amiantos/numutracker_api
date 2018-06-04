@@ -3,6 +3,8 @@ services:
   api:
     restart: always
     build: .
+    environment:
+      - FLASK_APP=main.py
     ports:
       - "80:80"
     networks:

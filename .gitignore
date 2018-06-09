@@ -1,6 +1,7 @@
 app/config/prod.py
 traefik.toml
 acme.json
+curl-tests.sh
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

@@ -1,3 +1,4 @@
 app/config/prod.py
 traefik.toml
 acme.json
+docker-compose.local.yml

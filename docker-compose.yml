@@ -5,6 +5,10 @@ services:
     build: .
     environment:
       - FLASK_APP=main.py
+    # To run locally, copy this file to docker-compose.local.yml
+    # And uncomment out these lines, then `make up`
+    # ports:
+    #  - "80:80"
     labels:
       - traefik.backend=api
       - traefik.frontend.rule=Host:api.numutracker.com

@@ -17,6 +17,8 @@ services:
     networks:
       - proxy
       - numunet
+    # depends_on:
+    #   - postgres
 
   postgres:
     image: postgres:10.4

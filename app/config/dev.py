@@ -1,3 +1,4 @@
+# Copy this file to prod.py for production environments.
 import os
 
 NUMU_ENVIRONMENT = "Development"

@@ -1,7 +1,6 @@
 app/config/prod.py
 traefik.toml
 acme.json
-docker-compose.local.yml
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

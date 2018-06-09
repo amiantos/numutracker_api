@@ -24,14 +24,14 @@ def new_user():
     email = request.json.get('email')
     password = request.json.get('password')
     if email is None or password is None:
-        abort(400) # missing arguments
+        abort(400)   # missing arguments
     if NumuUser.query.filter_by(email=email).first() is not None:
-        abort(400) # existing user
+        abort(400)  # existing user
     user = NumuUser(email=email)
     user.hash_password(password)
     db.session.add(user)
     db.session.commit()
-    return jsonify({'email': user.email}), 201, {'Location': url_for('get_user', id=user.id, _external=True)}
+    return jsonify({'email': user.email}), 201, {'Location': url_for('apiv3.get_user', id=user.id, _external=True)}
 
 
 @app.route('/user/<int:id>')
@@ -47,5 +47,3 @@ def get_user(id):
 def get_auth_token():
     token = g.user.generate_auth_token(600)
     return jsonify({'token': token.decode('ascii'), 'duration': 600})
-
-

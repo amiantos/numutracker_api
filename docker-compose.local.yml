@@ -6,13 +6,7 @@ services:
       - FLASK_APP=main.py
     ports:
       - "80:80"
-    labels:
-      - traefik.backend=api
-      - traefik.frontend.rule=Host:api.numutracker.com
-      - traefik.docker.network=proxy
-      - traefik.port=80
     networks:
-      - proxy
       - numunet
     depends_on:
       - postgres
@@ -41,5 +35,3 @@ networks:
   numunet:
     driver: bridge
     external: false
-  proxy:
-    external: true

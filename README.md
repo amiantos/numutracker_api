@@ -14,9 +14,13 @@ It supports an iOS app that provides push notifications of various types:
 
 User privacy is very important to Numu Tracker. The official instance of Numu Tracker running at numutracker.com should feature a simple privacy policy that states that any user data (email address, the user's artist list and release listening history) will never be monetized for any reason, and any user activity (app usage, etc) is only shared with third parties in an effort to improve the software.
 
-Numu Tracker pulls release information from [MusicBrainz.org](http://www.musicbrainz.org), an amazing service that everyone should use. It also pulls artist and release images from [Last.FM](http://www.last.fm), which is another amazing service that everyone should use.
+## Data Sources
+
+- [MusicBrainz.org](http://www.musicbrainz.org) - Artist and Release Information
+- [Last.FM](http://www.last.fm) - Artist and Release Images
 
 ## What's new in v3?
+
 APIv3 is being built to support the next generation of the iOS app. The main goals of the project are:
 
 1. Expand the Numu Tracker API to be more fully featured (w/ password reset requests, full GDPR compliance).

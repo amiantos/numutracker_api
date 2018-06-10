@@ -1,6 +1,6 @@
 from flask import abort, request, jsonify, g, url_for
 
-from models import NumuUser
+from models import User
 from main import db
 from main import auth
 from . import app
@@ -9,10 +9,10 @@ from . import app
 @auth.verify_password
 def verify_password(email_or_token, password):
     # first try to authenticate by token
-    user = NumuUser.verify_auth_token(email_or_token)
+    user = User.verify_auth_token(email_or_token)
     if not user:
         # try to authenticate with username/password
-        user = NumuUser.query.filter_by(email=email_or_token).first()
+        user = User.query.filter_by(email=email_or_token).first()
         if not user or not user.verify_password(password):
             return False
     g.user = user
@@ -25,9 +25,9 @@ def new_user():
     password = request.json.get('password')
     if email is None or password is None:
         abort(400)   # missing arguments
-    if NumuUser.query.filter_by(email=email).first() is not None:
+    if User.query.filter_by(email=email).first() is not None:
         abort(400)  # existing user
-    user = NumuUser(email=email)
+    user = User(email=email)
     user.hash_password(password)
     db.session.add(user)
     db.session.commit()
@@ -36,7 +36,7 @@ def new_user():
 
 @app.route('/user/<int:id>')
 def get_user(id):
-    user = NumuUser.query.get(id)
+    user = User.query.get(id)
     if not user:
         abort(400)
     return jsonify({'email': user.email})

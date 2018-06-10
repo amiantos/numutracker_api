@@ -14,11 +14,6 @@ It supports an iOS app that provides push notifications of various types:
 
 User privacy is very important to Numu Tracker. The official instance of Numu Tracker running at numutracker.com should feature a simple privacy policy that states that any user data (email address, the user's artist list and release listening history) will never be monetized for any reason, and any user activity (app usage, etc) is only shared with third parties in an effort to improve the software.
 
-## Data Sources
-
-- [MusicBrainz.org](http://www.musicbrainz.org) - Artist and Release Information
-- [Last.FM](http://www.last.fm) - Artist and Release Images
-
 ## What's new in v3?
 
 APIv3 is being built to support the next generation of the iOS app. The main goals of the project are:
@@ -35,5 +30,23 @@ APIv3 is being built to support the next generation of the iOS app. The main goa
 
 ## To Install
 1. `git clone https://github.com/amiantos/numutracker_api.git`
-2. Create a blank file in `/app/config/prod.py`
 3. `make up`
+
+## Author
+
+* Brad Root - [amiantos](https://github.com/amiantos)
+
+See also the list of [contributors](https://github.com/amiantos/numutracker_api/contributors).
+
+## Beta Testers
+
+If you'd like to beta test production versions of Numu Tracker, please email info@numutracker.com
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details
+
+## Acknowledgements
+Numu Tracker wouldn't exist without the following services:
+- [MusicBrainz.org](http://www.musicbrainz.org) - Artist and Release Information
+- [Last.FM](http://www.last.fm) - Artist and Release Images

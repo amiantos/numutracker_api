@@ -215,7 +215,7 @@ class Artist(db.Model):
 
     followers = relationship("User", secondary="user_artist", lazy=True)
     aka = relationship("ArtistAka", lazy=False)
-    releases = relationship("Release", lazy=True)
+    releases = relationship("Release", secondary=artist_release, lazy=True)
 
     def __repr__(self):
         return '<Artist {} - {}>'.format(self.name, self.mbid)
@@ -254,7 +254,7 @@ class UserArtist(db.Model):
         db.Enum(FollowMethod))
 
     user = relationship(User, lazy=True)
-    artist = relationship(Artist, secondary=artist_release, lazy=False)
+    artist = relationship(Artist, lazy=False)
 
     def __repr__(self):
         return '<UserArtist {} - {}>'.format(self.user_id, self.artist_mbid)

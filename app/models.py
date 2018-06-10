@@ -1,7 +1,7 @@
 import enum
 
 from sqlalchemy.sql import expression, func
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 
 from main import app
 from main import db

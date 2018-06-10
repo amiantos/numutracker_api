@@ -7,8 +7,7 @@ from flask_httpauth import HTTPBasicAuth
 
 app = Flask(__name__)
 
-app.config.from_object('config.dev')
-app.config.from_object('config.prod')
+app.config.from_envvar('NUMU_CONFIG')
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)

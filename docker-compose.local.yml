@@ -4,6 +4,7 @@ services:
     build: .
     environment:
       - FLASK_APP=main.py
+      - NUMU_CONFIG=config/dev.py
     ports:
       - "80:80"
     networks:

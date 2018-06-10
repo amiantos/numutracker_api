@@ -5,6 +5,7 @@ services:
     build: .
     environment:
       - FLASK_APP=main.py
+      - NUMU_CONFIG=config/prod.py
     labels:
       - traefik.backend=api
       - traefik.frontend.rule=Host:api.numutracker.com

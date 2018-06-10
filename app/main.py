@@ -32,6 +32,9 @@ def index():
 from apiv3 import app as api_v3
 app.register_blueprint(api_v3, url_prefix='/v3')
 
+from commands import app as commands
+app.register_blueprint(commands)
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True, port=80)

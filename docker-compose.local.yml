@@ -1,7 +1,9 @@
 version: '3'
 services:
   api:
-    build: .
+    build:
+      context: ./app
+      dockerfile: Dockerfile
     environment:
       - FLASK_APP=main.py
       - NUMU_CONFIG=config/dev.py
@@ -11,6 +13,7 @@ services:
       - numunet
     depends_on:
       - postgres
+      - redis
 
   postgres:
     image: postgres:10.4
@@ -28,8 +31,18 @@ services:
     networks:
       - numunet
 
+  redis:
+    image: redis
+    command: redis-server --requirepass numu_tracker
+    volumes:
+      - numu_redis:/var/lib/redis/data
+    networks:
+      - numunet
+
 volumes:
   numu_pgdata:
+    driver: local
+  numu_redis:
     driver: local
 
 networks:

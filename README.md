@@ -34,7 +34,7 @@ APIv3 is being built to support the next generation of the iOS app. The main goa
 
 ## Author
 
-* Brad Root - [amiantos](https://github.com/amiantos)
+* [Brad Root](https://bradroot.me) - [amiantos](https://github.com/amiantos)
 
 See also the list of [contributors](https://github.com/amiantos/numutracker_api/contributors).
 

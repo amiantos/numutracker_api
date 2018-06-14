@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/amiantos/numutracker_api/badge.svg?branch=master)](https://coveralls.io/github/amiantos/numutracker_api?branch=master)
+
 # Numu Tracker API v3
 
 This is the home for the third version of the Numu Tracker API. If you're not familiar with what Numu Tracker is, check out [the iOS App repository](https://www.github.com/amiantos/numutracker_ios) to see what it is all about, or keep reading.

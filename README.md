@@ -1,4 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/amiantos/numutracker_api/badge.svg?branch=master)](https://coveralls.io/github/amiantos/numutracker_api?branch=master)
+[![Build Status](https://travis-ci.org/amiantos/numutracker_api.svg?branch=master)](https://travis-ci.org/amiantos/numutracker_api) [![Coverage Status](https://coveralls.io/repos/github/amiantos/numutracker_api/badge.svg?branch=master)](https://coveralls.io/github/amiantos/numutracker_api?branch=master)
 
 # Numu Tracker API v3
 

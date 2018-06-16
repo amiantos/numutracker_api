@@ -1,9 +1,13 @@
+import logging
+
 from flask import Flask, make_response, jsonify
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_httpauth import HTTPBasicAuth
 
+from celery import Celery
+from config import celery as celeryconfig
 
 app = Flask(__name__)
 
@@ -12,6 +16,34 @@ app.config.from_envvar('NUMU_CONFIG')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 auth = HTTPBasicAuth()
+
+
+def make_celery(app):
+    celery = Celery(app.import_name)
+    celery.config_from_object(celeryconfig)
+
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+
+    celery.Task = ContextTask
+    return celery
+
+
+celery = make_celery(app)
+
+@app.before_first_request
+def setup_logging():
+    if not app.debug:
+        log_handler = logging.StreamHandler()
+        log_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s '
+            '[in %(pathname)s:%(lineno)d]'
+        ))
+        log_handler.setLevel(logging.INFO)
+        app.logger.addHandler(log_handler)
+        app.logger.setLevel(logging.INFO)
 
 
 @app.errorhandler(404)

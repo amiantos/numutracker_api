@@ -3,6 +3,7 @@ from flask import abort, request, jsonify, g, url_for
 from models import User
 from main import db
 from main import auth
+from main import app as numu_app
 from . import app
 
 
@@ -34,12 +35,11 @@ def new_user():
     return jsonify({'email': user.email}), 201, {'Location': url_for('apiv3.get_user', id=user.id, _external=True)}
 
 
-@app.route('/user/<int:id>')
-def get_user(id):
-    user = User.query.get(id)
-    if not user:
-        abort(400)
-    return jsonify({'email': user.email})
+@app.route('/user')
+@auth.login_required
+def get_user():
+    numu_app.logger.info("Got Self.")
+    return jsonify({'email': g.user.email})
 
 
 @app.route('/user/token')

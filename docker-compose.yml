@@ -2,7 +2,9 @@ version: '3'
 services:
   api:
     restart: always
-    build: .
+    build:
+      context: ./app
+      dockerfile: Dockerfile
     environment:
       - FLASK_APP=main.py
       - NUMU_CONFIG=config/prod.py
@@ -32,8 +34,18 @@ services:
       - numunet
     restart: unless-stopped
 
+  redis:
+    image: redis
+    command: redis-server --requirepass numu_tracker
+    volumes:
+      - numu_redis:/var/lib/redis/data
+    networks:
+      - numunet
+
 volumes:
   numu_pgdata:
+    driver: local
+  numu_redis:
     driver: local
 
 networks:

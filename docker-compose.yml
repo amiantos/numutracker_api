@@ -17,23 +17,6 @@ services:
       - proxy
       - numunet
 
-  postgres:
-    image: postgres:10.4
-    volumes:
-      - numu_pgdata:/var/lib/postgresql/data/pgdata
-    environment:
-      - POSTGRES_USER=numu
-      - POSTGRES_DB=numu
-      - POSTGRES_PASSWORD=
-      - PGDATA=/var/lib/postgresql/data/pgdata
-    labels:
-      - traefik.enable=false
-    ports:
-      - "5432:5432"
-    networks:
-      - numunet
-    restart: unless-stopped
-
   redis:
     image: redis
     command: redis-server --requirepass numu_tracker

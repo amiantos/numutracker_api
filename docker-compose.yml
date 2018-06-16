@@ -16,6 +16,8 @@ services:
     networks:
       - proxy
       - numunet
+    depends_on:
+      - redis
 
   redis:
     image: redis

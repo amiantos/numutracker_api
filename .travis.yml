@@ -19,6 +19,3 @@ script:
 
 after_script:
   - docker-compose -f docker-compose.local.yml down
-
-after_success:
-  coveralls --verbose

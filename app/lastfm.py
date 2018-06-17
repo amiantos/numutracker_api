@@ -21,18 +21,17 @@ def download_artists(user, username, limit=500, period='overall', page=1):
     Jresponse = uResponse.text
     data = json.loads(Jresponse)
 
-    artists = [a['name'] for a in data['topartists']['artist']]
-
     artists_added = 0
 
-    for artist in artists:
+    for artist in data['topartists']['artist']:
         found_import = ArtistImport.query.filter_by(
             user_id=user.id,
-            name=artist).first()
+            import_name=artist['name']).first()
         if found_import is None:
             new_import = ArtistImport(
                 user_id=user.id,
-                name=artist)
+                import_name=artist['name'],
+                import_mbid=artist['mbid'])
             db.session.add(new_import)
             artists_added += 1
 

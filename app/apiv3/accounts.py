@@ -4,6 +4,7 @@ from models import User
 from main import db
 from main import auth
 from main import app as numu_app
+import lastfm as lfm
 from . import app
 
 
@@ -47,3 +48,21 @@ def get_user():
 def get_auth_token():
     token = g.user.generate_auth_token(600)
     return jsonify({'token': token.decode('ascii'), 'duration': 600})
+
+
+@app.route('/user/import/lastfm', methods=['POST'])
+@auth.login_required
+def import_artists():
+    user = g.user
+    username = request.json.get('username')
+    period = request.json.get('period')
+    limit = request.json.get('limit')
+    if username is None or period not in ['7day', '1month', '3month', '6month', '12month']:
+        abort(400)
+
+    if limit is None or limit > 500:
+        limit = 500
+
+    result = lfm.download_artists(user, username, limit, period)
+
+    return jsonify({'success': True, 'result': result})

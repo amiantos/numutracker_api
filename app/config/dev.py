@@ -13,3 +13,5 @@ SECRET_KEY = "65c9cfc302b643b2d0a20d44f404314a00ce54e423ae6571"
 DEBUG = True
 
 APIV2_KEY = 'none'
+
+LAST_FM_API_KEY = 'none'

@@ -12,8 +12,8 @@ class TestTesting(BaseTestCase):
         db.session.commit()
 
     def test_testing(self):
-        imported = ArtistImport(user_id=self.user.id, name="Nine Inch Nails")
+        imported = ArtistImport(user_id=self.user.id, import_name="Nine Inch Nails")
         db.session.add(imported)
         db.session.commit()
 
-        assert ArtistImport.query.filter_by(user_id=self.user.id).first().name == "Nine Inch Nails"
+        assert ArtistImport.query.filter_by(user_id=self.user.id).first().import_name == "Nine Inch Nails"

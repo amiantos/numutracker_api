@@ -53,6 +53,13 @@ def get_auth_token():
 @app.route('/user/import/lastfm', methods=['POST'])
 @auth.login_required
 def import_artists():
+    """
+    Import artists from Last.FM
+    Arguments:
+    - username: last.FM username to import artists from
+    - period: '7day', '1month', '3month', '6month', '12month', 'overall'
+    - (optional) limit: maximum 500, default 500
+    """
     user = g.user
     username = request.json.get('username')
     period = request.json.get('period')

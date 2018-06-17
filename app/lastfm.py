@@ -2,7 +2,7 @@ import requests
 import json
 
 from main import app, db
-from models import ArtistImport
+from models import ArtistImport, ImportMethod, UserActivity, ActivityTypes
 
 
 def download_artists(user, username, limit=500, period='overall', page=1):
@@ -29,9 +29,15 @@ def download_artists(user, username, limit=500, period='overall', page=1):
             new_import = ArtistImport(
                 user_id=user.id,
                 import_name=artist['name'],
-                import_mbid=artist['mbid'])
+                import_mbid=artist['mbid'],
+                import_method=ImportMethod.LASTFM)
             db.session.add(new_import)
             artists_added += 1
+
+    activity = UserActivity(
+        user_id=user.id,
+        activity=ActivityTypes.LASTFM_IMPORT)
+    db.session.add(activity)
 
     db.session.commit()
 

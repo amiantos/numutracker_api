@@ -3,6 +3,7 @@ traefik.toml
 acme.json
 curl-tests.sh
 local.http
+app/config/lastfm.py
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

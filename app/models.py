@@ -33,11 +33,13 @@ class ReleaseType(enum.Enum):
 class AddMethod(enum.Enum):
     AUTOMATIC = 'Automatic'
     MANUAL = 'Manual'
+    LISTENED = 'Listened'
 
 
-class FollowMethod(enum.Enum):
+class ImportMethod(enum.Enum):
     APPLE = "Apple Music"
     SPOTIFY = "Spotify"
+    LASTFM = "Last.FM"
 
 
 class NotificationType(enum.Enum):
@@ -158,7 +160,7 @@ class UserActivity(db.Model):
         nullable=True)
     activity = db.Column(db.Enum(ActivityTypes))
 
-    user = relationship(User, lazy=True)
+    user = relationship(User, lazy=True, uselist=False)
 
     def __repr__(self):
         return '<UserActivity {}>'.format(self.id)
@@ -186,6 +188,10 @@ class Artist(db.Model):
     name = db.Column(
         db.String(512),
         nullable=False)
+    active = db.Column(
+        db.Boolean(),
+        server_default=expression.true(),
+        default=True)
     sort_name = db.Column(
         db.String(512),
         nullable=False)
@@ -212,6 +218,12 @@ class Artist(db.Model):
         nullable=False,
         server_default=func.now(),
         default=func.now())
+    apple_music_link = db.Column(
+        db.String(),
+        nullable=True)
+    spotify_link = db.Column(
+        db.String(),
+        nullable=True)
 
     followers = relationship("User", secondary="user_artist", lazy=True)
     aka = relationship("ArtistAka", lazy=False)
@@ -251,10 +263,10 @@ class UserArtist(db.Model):
         server_default=func.now(),
         default=func.now())
     follow_method = db.Column(
-        db.Enum(FollowMethod))
+        db.Enum(ImportMethod))
 
-    user = relationship(User, lazy=True)
-    artist = relationship(Artist, lazy=False)
+    user = relationship(User, lazy=True, uselist=False)
+    artist = relationship(Artist, lazy=False, uselist=False)
 
     def __repr__(self):
         return '<UserArtist {} - {}>'.format(self.user_id, self.artist_mbid)
@@ -270,6 +282,10 @@ class Release(db.Model):
     artists_string = db.Column(
         db.String(512),
         nullable=False)
+    active = db.Column(
+        db.Boolean(),
+        server_default=expression.true(),
+        default=True)
     type = db.Column(
         db.Enum(ReleaseType),
         index=True)
@@ -299,8 +315,14 @@ class Release(db.Model):
         nullable=False,
         server_default=func.now(),
         default=func.now())
+    apple_music_link = db.Column(
+        db.String(),
+        nullable=True)
+    spotify_link = db.Column(
+        db.String(),
+        nullable=True)
 
-    artists = db.relationship('Artist', secondary=artist_release, lazy=True)
+    artists = db.relationship('Artist', secondary=artist_release, lazy=False)
 
     def __repr__(self):
         return '<Release {} - {} - {}>'.format(
@@ -330,7 +352,7 @@ class UserRelease(db.Model):
         db.DateTime(True),
         nullable=True)
 
-    release = relationship(Release, lazy='joined')
+    release = relationship(Release, lazy='joined', uselist=False)
 
     def __repr__(self):
         return '<UserRelease {} - {}>'.format(
@@ -344,10 +366,15 @@ class ArtistImport(db.Model):
         db.ForeignKey('user.id'),
         index=True,
         primary_key=True)
-    name = db.Column(
+    import_name = db.Column(
         db.String(100),
         primary_key=True)
-    artist_mbid = db.Column(
+    import_mbid = db.Column(
+        db.String(36),
+        nullable=True)
+    import_method = db.Column(
+        db.Enum(ImportMethod))
+    found_mbid = db.Column(
         db.String(36),
         db.ForeignKey('artist.mbid'),
         nullable=True)
@@ -392,4 +419,4 @@ class UserNotifications(db.Model):
         server_default=expression.null(),
         default=None)
 
-    release = relationship(Release, lazy=False)
+    release = relationship(Release, lazy=False, uselist=False)

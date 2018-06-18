@@ -51,7 +51,7 @@ def search_artist_by_name(name):
         if artist['id'] not in blacklisted_artists:
             return {'status': status, 'artist': artist}
 
-    return {'status': status, 'result': []}
+    return {'status': status, 'artist': None}
 
 
 def get_artist(artist_mbid):
@@ -89,7 +89,8 @@ def get_artist_releases(artist_mbid):
     result = mbz.browse_release_groups(
         artist=artist_mbid,
         limit=limit,
-        offset=offset)
+        offset=offset,
+        includes=['artist-credits'])
     releases += result['release-group-list']
 
     if 'release-group-count' in result:

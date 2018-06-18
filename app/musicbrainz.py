@@ -84,26 +84,34 @@ def get_artist_releases(artist_mbid):
     limit = 100
     offset = 0
     releases = []
+    release_groups = []
     page = 1
 
-    result = mbz.browse_release_groups(
+    result = mbz.browse_releases(
         artist=artist_mbid,
         limit=limit,
         offset=offset,
-        includes=['artist-credits'])
-    releases += result['release-group-list']
+        includes=['release-groups', 'artist-credits'],
+        release_status=['official'])
 
-    if 'release-group-count' in result:
-        count = result['release-group-count']
+    releases += result['release-list']
 
-    while len(releases) < count:
-        offset += limit
-        page += 1
+    if 'release-count' in result:
+        count = result['release-count']
 
-        result = mbz.browse_release_groups(
-            artist=artist_mbid,
-            limit=limit,
-            offset=offset)
-        releases += result['release-group-list']
+        while len(releases) < count:
+            offset += limit
+            page += 1
 
-    return {'status': 200, 'releases': releases}
+            result = mbz.browse_releases(
+                artist=artist_mbid,
+                limit=limit,
+                offset=offset,
+                includes=['release-groups', 'artist-credits'],
+                release_status=['official'])
+            releases += result['release-list']
+
+    for release in releases:
+        release_groups.append(release['release-group'])
+
+    return {'status': 200, 'releases': release_groups}

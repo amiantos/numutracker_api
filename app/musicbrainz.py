@@ -8,6 +8,22 @@ mbz.set_useragent(
 )
 
 
+def search_artist_by_name(name):
+    try:
+        result = mbz.search_artists(
+            query="artist:{}".format(name),
+            limit=1,
+            strict=True)
+    except mbz.ResponseError as err:
+        status = err.cause.code
+        result = None
+    else:
+        status = 200
+        result = result["artist-list"]
+
+    return {'status': status, 'result': result}
+
+
 def get_artist(artist_mbid):
     try:
         result = mbz.get_artist_by_id(artist_mbid)

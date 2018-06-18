@@ -112,6 +112,7 @@ def get_artist_releases(artist_mbid):
             releases += result['release-list']
 
     for release in releases:
-        release_groups.append(release['release-group'])
+        if release not in release_groups:
+            release_groups.append(release['release-group'])
 
     return {'status': 200, 'releases': release_groups}

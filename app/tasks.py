@@ -6,7 +6,7 @@ from main import app as numu_app
 import backend
 
 
-REDIS_CLIENT = redis.Redis()
+REDIS_CLIENT = redis.Redis(host='redis', password='numu_tracker')
 
 
 def only_one(function=None, key="", timeout=None):
@@ -39,8 +39,8 @@ def only_one(function=None, key="", timeout=None):
 def setup_periodic_tasks(sender, **kwargs):
 
     sender.add_periodic_task(
-        10,
-        backend.import_artists.s(),
+        30,
+        run_updates.s(),
         name='Updates'
     )
 
@@ -51,7 +51,8 @@ def setup_periodic_tasks(sender, **kwargs):
         name='Notifications'
     )"""
 
-#@only_one(key="mb_task", timeout=60 * 5)
+
 @celery.task
+@only_one(key="mb_task", timeout=60 * 5)
 def run_updates():
     backend.import_artists()

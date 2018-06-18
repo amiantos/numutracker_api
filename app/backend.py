@@ -25,7 +25,7 @@ def import_artists(check_musicbrainz=True):
     ).order_by(
         ArtistImport.date_checked.desc(),
         ArtistImport.date_added.asc()
-    ).limit(1).all()
+    ).limit(100).all()
 
     for i_artist in import_artists:
         found_artist = None
@@ -33,10 +33,10 @@ def import_artists(check_musicbrainz=True):
             i_artist.import_name,
             i_artist.import_mbid))
         # Check local DB by mbid
-        if i_artist.import_mbid and found_artist is None:
+        """if i_artist.import_mbid and found_artist is None:
             print("Checking Stored MBID")
             found_artist = Artist.query.filter_by(
-                mbid=i_artist.import_mbid).first()
+                mbid=i_artist.import_mbid).first()"""
 
         # Check local DB by name
         if found_artist is None:
@@ -67,11 +67,11 @@ def import_artists(check_musicbrainz=True):
 
         # Grab from MusicBrainz
         if check_musicbrainz:
-            if i_artist.import_mbid:
-                mb_results = mb.get_artist(i_artist.import_mbid)
+            #if i_artist.import_mbid:
+                #mb_results = mb.get_artist(i_artist.import_mbid)
 
-            if i_artist.import_mbid is None or mb_results['artist'] is None:
-                mb_results = mb.search_artist_by_name(i_artist.import_name)
+            #if i_artist.import_mbid is None or mb_results['artist'] is None:
+            mb_results = mb.search_artist_by_name(i_artist.import_name)
 
             mb_artist = mb_results['artist']
             if mb_artist:
@@ -104,9 +104,13 @@ def import_artists(check_musicbrainz=True):
 def import_and_update_releases(artist_mbid, user_id=None):
     mb_releases = mb.get_artist_releases(artist_mbid)
 
+    releases_added = []
+
     for mb_release in mb_releases['releases']:
         numu_date = get_numu_date(mb_release.get('first-release-date'))
-        if numu_date == '0000-01-01' or mb_release.get('artist-credit') is None:
+        if numu_date == '0000-01-01'\
+                or mb_release.get('artist-credit') is None\
+                or mb_release.get('id') in releases_added:
             continue
 
         release = Release.query.filter_by(mbid=mb_release.get('id')).first()
@@ -127,6 +131,7 @@ def import_and_update_releases(artist_mbid, user_id=None):
                     release.artists.append(artist)
 
         db.session.add(release)
+        releases_added.append(release.mbid)
 
         if user_id:
             new_user_release = UserRelease(

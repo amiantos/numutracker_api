@@ -37,7 +37,7 @@ blacklisted_artists = {
 def search_artist_by_name(name):
     try:
         result = mbz.search_artists(
-            query="artist:{}".format(name),
+            query="artist:{}".format(name.replace('/', ' ')),
             limit=10,
             strict=True)
     except mbz.ResponseError as err:

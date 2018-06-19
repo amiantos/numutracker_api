@@ -33,10 +33,10 @@ def import_artists(check_musicbrainz=True):
             i_artist.import_name,
             i_artist.import_mbid))
         # Check local DB by mbid
-        """if i_artist.import_mbid and found_artist is None:
+        if i_artist.import_mbid and found_artist is None:
             print("Checking Stored MBID")
             found_artist = Artist.query.filter_by(
-                mbid=i_artist.import_mbid).first()"""
+                mbid=i_artist.import_mbid).first()
 
         # Check local DB by name
         if found_artist is None:
@@ -67,11 +67,12 @@ def import_artists(check_musicbrainz=True):
 
         # Grab from MusicBrainz
         if check_musicbrainz:
-            #if i_artist.import_mbid:
-                #mb_results = mb.get_artist(i_artist.import_mbid)
+            mb_results = None
+            if i_artist.import_mbid:
+                mb_results = mb.get_artist(i_artist.import_mbid)
 
-            #if i_artist.import_mbid is None or mb_results['artist'] is None:
-            mb_results = mb.search_artist_by_name(i_artist.import_name)
+            if i_artist.import_mbid is None or mb_results is None or mb_results['artist'] is None:
+                mb_results = mb.search_artist_by_name(i_artist.import_name)
 
             mb_artist = mb_results['artist']
             if mb_artist:

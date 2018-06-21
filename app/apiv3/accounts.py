@@ -6,6 +6,7 @@ from main import auth
 from main import app as numu_app
 import lastfm as lfm
 from . import app
+import backend
 
 
 @auth.verify_password
@@ -71,5 +72,7 @@ def import_artists():
         limit = 500
 
     result = lfm.download_artists(user, username, limit, period)
+
+    backend.import_artists.delay(False)
 
     return jsonify(result), 200

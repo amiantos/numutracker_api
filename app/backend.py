@@ -20,12 +20,15 @@ from models import (
 
 @celery.task
 def import_artists(check_musicbrainz=True):
+    limit = 1000
+    if check_musicbrainz:
+        limit = 100
     import_artists = ArtistImport.query.filter_by(
         found_mbid=None
     ).order_by(
         ArtistImport.date_checked.desc(),
         ArtistImport.date_added.asc()
-    ).limit(100).all()
+    ).limit(limit).all()
 
     for i_artist in import_artists:
         found_artist = None
@@ -93,16 +96,16 @@ def import_artists(check_musicbrainz=True):
                 i_artist.found_mbid = mb_artist.get('id')
                 print("Found in Music Brainz")
                 db.session.commit()
-                import_and_update_releases(found_artist.mbid, user_id=i_artist.user_id)
+                add_or_update_releases(found_artist.mbid, user_id=i_artist.user_id)
 
         i_artist.date_checked = func.now()
         db.session.add(i_artist)
         db.session.commit()
 
-        import_and_update_releases
+        add_or_update_releases
 
 
-def import_and_update_releases(artist_mbid, user_id=None):
+def add_or_update_releases(artist_mbid, user_id=None):
     mb_releases = mb.get_artist_releases(artist_mbid)
 
     releases_added = []
@@ -151,7 +154,6 @@ def create_or_get_artist(artist_mbid):
         return artist
 
     mb_artist = mb.get_artist(artist_mbid)
-
     if mb_artist['artist']:
         artist = Artist(
             mbid=mb_artist['artist'].get('id'),

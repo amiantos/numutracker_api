@@ -9,6 +9,7 @@ from flask_httpauth import HTTPBasicAuth
 from celery import Celery
 from config import celery as celeryconfig
 
+
 app = Flask(__name__)
 
 app.config.from_envvar('NUMU_CONFIG')
@@ -32,6 +33,7 @@ def make_celery(app):
 
 
 celery = make_celery(app)
+
 
 @app.before_first_request
 def setup_logging():

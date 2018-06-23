@@ -37,7 +37,7 @@ blacklisted_artists = {
 def search_artist_by_name(name):
     try:
         result = mbz.search_artists(
-            query="artist:{}".format(name),
+            query="artist:{}".format(name.replace('/', ' ')),
             limit=10,
             strict=True)
     except mbz.ResponseError as err:
@@ -51,7 +51,7 @@ def search_artist_by_name(name):
         if artist['id'] not in blacklisted_artists:
             return {'status': status, 'artist': artist}
 
-    return {'status': status, 'result': []}
+    return {'status': status, 'artist': None}
 
 
 def get_artist(artist_mbid):
@@ -84,25 +84,35 @@ def get_artist_releases(artist_mbid):
     limit = 100
     offset = 0
     releases = []
+    release_groups = []
     page = 1
 
-    result = mbz.browse_release_groups(
+    result = mbz.browse_releases(
         artist=artist_mbid,
         limit=limit,
-        offset=offset)
-    releases += result['release-group-list']
+        offset=offset,
+        includes=['release-groups', 'artist-credits'],
+        release_status=['official'])
 
-    if 'release-group-count' in result:
-        count = result['release-group-count']
+    releases += result['release-list']
 
-    while len(releases) < count:
-        offset += limit
-        page += 1
+    if 'release-count' in result:
+        count = result['release-count']
 
-        result = mbz.browse_release_groups(
-            artist=artist_mbid,
-            limit=limit,
-            offset=offset)
-        releases += result['release-group-list']
+        while len(releases) < count:
+            offset += limit
+            page += 1
 
-    return {'status': 200, 'releases': releases}
+            result = mbz.browse_releases(
+                artist=artist_mbid,
+                limit=limit,
+                offset=offset,
+                includes=['release-groups', 'artist-credits'],
+                release_status=['official'])
+            releases += result['release-list']
+
+    for release in releases:
+        if release not in release_groups:
+            release_groups.append(release['release-group'])
+
+    return {'status': 200, 'releases': release_groups}

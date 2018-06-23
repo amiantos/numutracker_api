@@ -65,6 +65,8 @@ def import_artists(check_musicbrainz=True):
                 follow_method=i_artist.import_method
             )
             db.session.add(new_user_artist)
+            db.session.commit()
+            add_user_releases(new_user_artist)
 
             continue
 
@@ -74,7 +76,9 @@ def import_artists(check_musicbrainz=True):
             if i_artist.import_mbid:
                 mb_results = mb.get_artist(i_artist.import_mbid)
 
-            if i_artist.import_mbid is None or mb_results is None or mb_results['artist'] is None:
+            if i_artist.import_mbid is None \
+                    or mb_results is None \
+                    or mb_results['artist'] is None:
                 mb_results = mb.search_artist_by_name(i_artist.import_name)
 
             mb_artist = mb_results['artist']
@@ -96,7 +100,9 @@ def import_artists(check_musicbrainz=True):
                 i_artist.found_mbid = mb_artist.get('id')
                 print("Found in Music Brainz")
                 db.session.commit()
-                add_or_update_releases(found_artist.mbid, user_id=i_artist.user_id)
+                add_or_update_releases(
+                    found_artist.mbid,
+                    user_id=i_artist.user_id)
 
         i_artist.date_checked = func.now()
         db.session.add(i_artist)
@@ -112,8 +118,8 @@ def add_or_update_releases(artist_mbid, user_id=None):
 
     for mb_release in mb_releases['releases']:
         numu_date = get_numu_date(mb_release.get('first-release-date'))
-        if numu_date == '0000-01-01'\
-                or mb_release.get('artist-credit') is None\
+        if numu_date == '0000-01-01' \
+                or mb_release.get('artist-credit') is None \
                 or mb_release.get('id') in releases_added:
             continue
 
@@ -124,7 +130,8 @@ def add_or_update_releases(artist_mbid, user_id=None):
         release.mbid = mb_release.get('id')
         release.title = mb_release.get('title')
         release.type = get_numu_type(mb_release)
-        release.date_release = get_numu_date(mb_release.get('first-release-date'))
+        release.date_release = get_numu_date(
+            mb_release.get('first-release-date'))
         release.artists_string = mb_release.get('artist-credit-phrase')
         release.date_updated = func.now()
 
@@ -166,6 +173,25 @@ def create_or_get_artist(artist_mbid):
         return artist
 
     return None
+
+
+def add_user_releases(user_artist):
+    user = user_artist.user
+    artist = user_artist.artist
+
+    for release in artist.releases:
+        user_release = UserRelease.query.filter_by(
+            user_id=user.id,
+            release_mbid=release.mbid).first()
+        if user_release is None:
+            user_release = UserRelease(
+                user_id=user.id,
+                release_mbid=release.mbid,
+                add_method=AddMethod.AUTOMATIC
+            )
+            db.session.add(user_release)
+
+    db.session.commit()
 
 
 def get_numu_date(mb_release_date):

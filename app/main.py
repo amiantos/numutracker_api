@@ -34,6 +34,7 @@ def make_celery(app):
 
 celery = make_celery(app)
 
+
 @app.before_first_request
 def setup_logging():
     if not app.debug:

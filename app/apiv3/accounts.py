@@ -34,7 +34,7 @@ def new_user():
     user.hash_password(password)
     db.session.add(user)
     db.session.commit()
-    return jsonify({'email': user.email}), 201, {'Location': url_for('apiv3.get_user', id=user.id, _external=True)}
+    return jsonify({'email': user.email}), 201
 
 
 @app.route('/user')

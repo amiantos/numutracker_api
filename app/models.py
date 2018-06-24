@@ -371,6 +371,10 @@ class UserRelease(db.Model):
         Numeric(3, 2),
         default=0,
         nullable=False)
+    active = Column(
+        Boolean(),
+        server_default=expression.true(),
+        default=True)
 
     release = relationship(Release, lazy='joined', uselist=False)
 

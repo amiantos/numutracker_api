@@ -1,21 +1,10 @@
 from sqlalchemy.sql import func
 
-from main import app as numu_app
-from main import db, celery
-
 import musicbrainz as mb
-
-from models import (
-    Artist,
-    ArtistAka,
-    ArtistImport,
-    Release,
-    ReleaseType,
-    AddMethod,
-    UserRelease,
-    UserArtist,
-    ImportMethod
-)
+from main import app as numu_app
+from main import celery, db
+from models import (AddMethod, Artist, ArtistAka, ArtistImport, ImportMethod,
+                    Release, ReleaseType, UserArtist, UserRelease)
 
 
 @celery.task

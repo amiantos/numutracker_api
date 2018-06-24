@@ -1,8 +1,8 @@
 """initial migrations
 
-Revision ID: 37482b777f57
+Revision ID: b8408a1e2cba
 Revises: 
-Create Date: 2018-06-17 18:55:46.551910
+Create Date: 2018-06-24 21:18:15.683756
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '37482b777f57'
+revision = 'b8408a1e2cba'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -69,7 +69,7 @@ def upgrade():
     op.create_table('artist_aka',
     sa.Column('artist_mbid', sa.String(length=36), nullable=False),
     sa.Column('name', sa.String(length=512), nullable=False),
-    sa.ForeignKeyConstraint(['artist_mbid'], ['artist.mbid'], ),
+    sa.ForeignKeyConstraint(['artist_mbid'], ['artist.mbid'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('artist_mbid', 'name')
     )
     op.create_index(op.f('ix_artist_aka_artist_mbid'), 'artist_aka', ['artist_mbid'], unique=False)
@@ -81,16 +81,16 @@ def upgrade():
     sa.Column('found_mbid', sa.String(length=36), nullable=True),
     sa.Column('date_added', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('date_checked', sa.DateTime(timezone=True), server_default=sa.text('NULL'), nullable=True),
-    sa.ForeignKeyConstraint(['found_mbid'], ['artist.mbid'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['found_mbid'], ['artist.mbid'], onupdate='CASCADE', ondelete='SET NULL', initially='DEFERRED', deferrable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
     sa.PrimaryKeyConstraint('user_id', 'import_name')
     )
     op.create_index(op.f('ix_artist_import_user_id'), 'artist_import', ['user_id'], unique=False)
     op.create_table('artist_release',
     sa.Column('artist_mbid', sa.String(length=36), nullable=False),
     sa.Column('release_mbid', sa.String(length=36), nullable=False),
-    sa.ForeignKeyConstraint(['artist_mbid'], ['artist.mbid'], ),
-    sa.ForeignKeyConstraint(['release_mbid'], ['release.mbid'], ),
+    sa.ForeignKeyConstraint(['artist_mbid'], ['artist.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
+    sa.ForeignKeyConstraint(['release_mbid'], ['release.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
     sa.PrimaryKeyConstraint('artist_mbid', 'release_mbid')
     )
     op.create_table('user_activity',
@@ -99,10 +99,10 @@ def upgrade():
     sa.Column('date', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('release_mbid', sa.String(length=36), nullable=True),
     sa.Column('artist_mbid', sa.String(length=36), nullable=True),
-    sa.Column('activity', sa.Enum('LISTENED', 'UNLISTENED', 'FOLLOW_ARTIST', 'FOLLOW_RELEASE', 'UNFOLLOW_ARTIST', 'UNFOLLOW_RELEASE', 'APPLE_IMPORT', 'SPOTIFY_IMPORT', 'LASTFM_IMPORT', 'COMMENT_ARTIST', 'COMMENT_RELEASE', name='activitytypes'), nullable=True),
-    sa.ForeignKeyConstraint(['artist_mbid'], ['artist.mbid'], ),
-    sa.ForeignKeyConstraint(['release_mbid'], ['release.mbid'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.Column('activity', sa.Enum('LISTENED', 'UNLISTENED', 'FOLLOW_ARTIST', 'FOLLOW_RELEASE', 'UNFOLLOW_ARTIST', 'UNFOLLOW_RELEASE', 'APPLE_IMPORT', 'SPOTIFY_IMPORT', 'LASTFM_IMPORT', 'COMMENT_ARTIST', 'COMMENT_RELEASE', 'RATED_RELEASE', name='activitytypes'), nullable=True),
+    sa.ForeignKeyConstraint(['artist_mbid'], ['artist.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
+    sa.ForeignKeyConstraint(['release_mbid'], ['release.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_artist',
@@ -110,8 +110,8 @@ def upgrade():
     sa.Column('artist_mbid', sa.String(length=36), nullable=False),
     sa.Column('date_followed', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('follow_method', sa.Enum('APPLE', 'SPOTIFY', 'LASTFM', name='importmethod'), nullable=True),
-    sa.ForeignKeyConstraint(['artist_mbid'], ['artist.mbid'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['artist_mbid'], ['artist.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('user_id', 'artist_mbid')
     )
     op.create_table('user_notifications',
@@ -120,8 +120,8 @@ def upgrade():
     sa.Column('type', sa.Enum('PAST', 'UPCOMING', 'RECENT', 'RELEASED', name='notificationtype'), nullable=True),
     sa.Column('release_mbid', sa.String(length=36), nullable=False),
     sa.Column('date_sent', sa.DateTime(timezone=True), server_default=sa.text('NULL'), nullable=True),
-    sa.ForeignKeyConstraint(['release_mbid'], ['release.mbid'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['release_mbid'], ['release.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('user_id', 'release_mbid')
     )
     op.create_index(op.f('ix_user_notifications_date_created'), 'user_notifications', ['date_created'], unique=False)
@@ -132,8 +132,10 @@ def upgrade():
     sa.Column('date_added', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('add_method', sa.Enum('AUTOMATIC', 'MANUAL', 'LISTENED', name='addmethod'), nullable=True),
     sa.Column('date_listened', sa.DateTime(timezone=True), nullable=True),
-    sa.ForeignKeyConstraint(['release_mbid'], ['release.mbid'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.Column('rating', sa.Numeric(precision=3, scale=2), nullable=False),
+    sa.Column('active', sa.Boolean(), server_default=sa.text('true'), nullable=True),
+    sa.ForeignKeyConstraint(['release_mbid'], ['release.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
     sa.PrimaryKeyConstraint('user_id', 'release_mbid')
     )
     op.create_index(op.f('ix_user_release_user_id'), 'user_release', ['user_id'], unique=False)

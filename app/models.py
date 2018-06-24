@@ -1,14 +1,14 @@
 import enum
 
-from sqlalchemy.sql import expression, func
-from sqlalchemy.orm import relationship
-
-from main import app
-from main import db
-
+from itsdangerous import BadSignature, SignatureExpired
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from passlib.apps import custom_app_context as pwd_context
-from itsdangerous import (TimedJSONWebSignatureSerializer
-                          as Serializer, BadSignature, SignatureExpired)
+from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
+                        Numeric, String)
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import expression, func
+
+from main import app, db
 
 
 class ReleaseType(enum.Enum):
@@ -61,54 +61,24 @@ class ActivityTypes(enum.Enum):
     LASTFM_IMPORT = "Imported from Last.FM"
     COMMENT_ARTIST = "Commented on Artist"
     COMMENT_RELEASE = "Commented on Release"
+    RATED_RELEASE = "Rated a Release"
 
 
 class User(db.Model):
-    id = db.Column(
-        db.Integer,
-        primary_key=True)
-    email = db.Column(
-        db.String(120),
-        index=True,
-        unique=True)
-    password_hash = db.Column(
-        db.String(128))
-    username = db.Column(
-        db.String(12),
-        nullable=True,
-        unique=True)
-    date_joined = db.Column(
-        db.DateTime(True),
-        server_default=func.now(),
-        default=func.now())
-    album = db.Column(
-        db.Boolean(),
-        server_default=expression.true(),
-        default=True)
-    single = db.Column(
-        db.Boolean(),
-        server_default=expression.true(),
-        default=True)
-    ep = db.Column(
-        db.Boolean(),
-        server_default=expression.true(),
-        default=True)
-    live = db.Column(
-        db.Boolean(),
-        server_default=expression.false(),
-        default=False)
-    soundtrack = db.Column(
-        db.Boolean(),
-        server_default=expression.false(),
-        default=False)
-    remix = db.Column(
-        db.Boolean(),
-        server_default=expression.false(),
-        default=False)
-    other = db.Column(
-        db.Boolean(),
-        server_default=expression.false(),
-        default=False)
+    id = Column(Integer, primary_key=True)
+    email = Column(String(120), index=True, unique=True)
+    password_hash = Column(String(128))
+    username = Column(String(12), nullable=True, unique=True)
+    date_joined = Column(DateTime(True), server_default=func.now(),
+                         default=func.now())
+    album = Column(Boolean(), server_default=expression.true(), default=True)
+    single = Column(Boolean(), server_default=expression.true(), default=True)
+    ep = Column(Boolean(), server_default=expression.true(), default=True)
+    live = Column(Boolean(), server_default=expression.false(), default=False)
+    soundtrack = Column(Boolean(), server_default=expression.false(),
+                        default=False)
+    remix = Column(Boolean(), server_default=expression.false(), default=False)
+    other = Column(Boolean(), server_default=expression.false(), default=False)
 
     artists = relationship("Artist", secondary="user_artist", lazy=True)
     releases = relationship("Release", secondary="user_release", lazy=True)
@@ -140,27 +110,42 @@ class User(db.Model):
 
 
 class UserActivity(db.Model):
-    id = db.Column(
-        db.Integer,
+    id = Column(
+        Integer,
         primary_key=True)
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey('user.id'))
-    date = db.Column(
-        db.DateTime(True),
+    user_id = Column(
+        Integer,
+        ForeignKey(
+            'user.id',
+            onupdate="CASCADE",
+            ondelete="CASCADE"))
+    date = Column(
+        DateTime(True),
         server_default=func.now(),
         default=func.now())
-    release_mbid = db.Column(
-        db.String(36),
-        db.ForeignKey('release.mbid'),
+    release_mbid = Column(
+        String(36),
+        ForeignKey(
+            'release.mbid',
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED"),
         nullable=True)
-    artist_mbid = db.Column(
-        db.String(36),
-        db.ForeignKey('artist.mbid'),
+    artist_mbid = Column(
+        String(36),
+        ForeignKey(
+            'artist.mbid',
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED"),
         nullable=True)
-    activity = db.Column(db.Enum(ActivityTypes))
+    activity = Column(Enum(ActivityTypes))
 
     user = relationship(User, lazy=True, uselist=False)
+    release = relationship("Release", lazy=True, uselist=False)
+    artist = relationship("Artist", lazy=True, uselist=False)
 
     def __repr__(self):
         return '<UserActivity {}>'.format(self.id)
@@ -168,65 +153,75 @@ class UserActivity(db.Model):
 
 artist_release = db.Table(
     'artist_release',
-    db.Column(
+    Column(
         'artist_mbid',
-        db.String(36),
-        db.ForeignKey('artist.mbid'),
+        String(36),
+        ForeignKey(
+            'artist.mbid',
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED"),
         primary_key=True),
-    db.Column(
+    Column(
         'release_mbid',
-        db.String(36),
-        db.ForeignKey('release.mbid'),
+        String(36),
+        ForeignKey(
+            'release.mbid',
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED"),
         primary_key=True)
 )
 
 
 class Artist(db.Model):
-    mbid = db.Column(
-        db.String(36),
+    mbid = Column(
+        String(36),
         primary_key=True)
-    name = db.Column(
-        db.String(512),
+    name = Column(
+        String(512),
         nullable=False)
-    active = db.Column(
-        db.Boolean(),
+    active = Column(
+        Boolean(),
         server_default=expression.true(),
         default=True)
-    sort_name = db.Column(
-        db.String(512),
+    sort_name = Column(
+        String(512),
         nullable=False)
-    disambiguation = db.Column(
-        db.String(512),
+    disambiguation = Column(
+        String(512),
         nullable=False)
-    art = db.Column(
-        db.String(100),
+    art = Column(
+        String(100),
         nullable=True,
         server_default=expression.null(),
         default=None)
-    date_added = db.Column(
-        db.DateTime(True),
+    date_added = Column(
+        DateTime(True),
         nullable=False,
         server_default=func.now(),
         default=func.now())
-    date_art_check = db.Column(
-        db.DateTime(True),
+    date_art_check = Column(
+        DateTime(True),
         nullable=True,
         server_default=expression.null(),
         default=None)
-    date_updated = db.Column(
-        db.DateTime(True),
+    date_updated = Column(
+        DateTime(True),
         nullable=False,
         server_default=func.now(),
         default=func.now())
-    apple_music_link = db.Column(
-        db.String(),
+    apple_music_link = Column(
+        String(),
         nullable=True)
-    spotify_link = db.Column(
-        db.String(),
+    spotify_link = Column(
+        String(),
         nullable=True)
 
-    followers = relationship("User", secondary="user_artist", lazy=True)
-    aka = relationship("ArtistAka", lazy=False)
+    users = relationship("User", secondary="user_artist", lazy=True)
+    akas = relationship("ArtistAka", lazy=False)
     releases = relationship("Release", secondary=artist_release, lazy=True)
 
     def __repr__(self):
@@ -234,13 +229,16 @@ class Artist(db.Model):
 
 
 class ArtistAka(db.Model):
-    artist_mbid = db.Column(
-        db.String(36),
-        db.ForeignKey('artist.mbid'),
+    artist_mbid = Column(
+        String(36),
+        ForeignKey(
+            'artist.mbid',
+            onupdate="CASCADE",
+            ondelete="CASCADE"),
         index=True,
         primary_key=True)
-    name = db.Column(
-        db.String(512),
+    name = Column(
+        String(512),
         nullable=False,
         primary_key=True)
 
@@ -249,21 +247,29 @@ class ArtistAka(db.Model):
 
 
 class UserArtist(db.Model):
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey('user.id'),
+    user_id = Column(
+        Integer,
+        ForeignKey(
+            'user.id',
+            onupdate="CASCADE",
+            ondelete="CASCADE"),
         primary_key=True)
-    artist_mbid = db.Column(
-        db.String(36),
-        db.ForeignKey('artist.mbid'),
+    artist_mbid = Column(
+        String(36),
+        ForeignKey(
+            'artist.mbid',
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED"),
         primary_key=True)
-    date_followed = db.Column(
-        db.DateTime(True),
+    date_followed = Column(
+        DateTime(True),
         nullable=False,
         server_default=func.now(),
         default=func.now())
-    follow_method = db.Column(
-        db.Enum(ImportMethod))
+    follow_method = Column(
+        Enum(ImportMethod))
 
     user = relationship(User, lazy=True, uselist=False)
     artist = relationship(Artist, lazy=False, uselist=False)
@@ -273,53 +279,53 @@ class UserArtist(db.Model):
 
 
 class Release(db.Model):
-    mbid = db.Column(
-        db.String(36),
+    mbid = Column(
+        String(36),
         primary_key=True)
-    title = db.Column(
-        db.String(512),
+    title = Column(
+        String(512),
         nullable=False)
-    artists_string = db.Column(
-        db.String(512),
+    artists_string = Column(
+        String(512),
         nullable=False)
-    active = db.Column(
-        db.Boolean(),
+    active = Column(
+        Boolean(),
         server_default=expression.true(),
         default=True)
-    type = db.Column(
-        db.Enum(ReleaseType),
+    type = Column(
+        Enum(ReleaseType),
         index=True)
-    date_release = db.Column(
+    date_release = Column(
         db.Date,
         nullable=False,
         index=True,
         server_default=expression.null(),
         default=None)
-    art = db.Column(
-        db.String(100),
+    art = Column(
+        String(100),
         nullable=True,
         server_default=expression.null(),
         default=None)
-    date_added = db.Column(
-        db.DateTime(True),
+    date_added = Column(
+        DateTime(True),
         nullable=False,
         server_default=func.now(),
         default=func.now())
-    date_art_check = db.Column(
-        db.DateTime(True),
+    date_art_check = Column(
+        DateTime(True),
         nullable=True,
         server_default=expression.null(),
         default=None)
-    date_updated = db.Column(
-        db.DateTime(True),
+    date_updated = Column(
+        DateTime(True),
         nullable=False,
         server_default=func.now(),
         default=func.now())
-    apple_music_link = db.Column(
-        db.String(),
+    apple_music_link = Column(
+        String(),
         nullable=True)
-    spotify_link = db.Column(
-        db.String(),
+    spotify_link = Column(
+        String(),
         nullable=True)
 
     artists = db.relationship('Artist', secondary=artist_release, lazy=False)
@@ -332,25 +338,43 @@ class Release(db.Model):
 
 
 class UserRelease(db.Model):
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey('user.id'),
+    user_id = Column(
+        Integer,
+        ForeignKey(
+            'user.id',
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED"),
         index=True,
         primary_key=True)
-    release_mbid = db.Column(
-        db.String(36),
-        db.ForeignKey('release.mbid'),
+    release_mbid = Column(
+        String(36),
+        ForeignKey(
+            'release.mbid',
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED"),
         primary_key=True)
-    date_added = db.Column(
-        db.DateTime(True),
+    date_added = Column(
+        DateTime(True),
         nullable=False,
         server_default=func.now(),
         default=func.now())
-    add_method = db.Column(
-        db.Enum(AddMethod))
-    date_listened = db.Column(
-        db.DateTime(True),
+    add_method = Column(
+        Enum(AddMethod))
+    date_listened = Column(
+        DateTime(True),
         nullable=True)
+    rating = Column(
+        Numeric(3, 2),
+        default=0,
+        nullable=False)
+    active = Column(
+        Boolean(),
+        server_default=expression.true(),
+        default=True)
 
     release = relationship(Release, lazy='joined', uselist=False)
 
@@ -361,30 +385,40 @@ class UserRelease(db.Model):
 
 
 class ArtistImport(db.Model):
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey('user.id'),
+    user_id = Column(
+        Integer,
+        ForeignKey(
+            'user.id',
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED"),
         index=True,
         primary_key=True)
-    import_name = db.Column(
-        db.String(100),
+    import_name = Column(
+        String(100),
         primary_key=True)
-    import_mbid = db.Column(
-        db.String(36),
+    import_mbid = Column(
+        String(36),
         nullable=True)
-    import_method = db.Column(
-        db.Enum(ImportMethod))
-    found_mbid = db.Column(
-        db.String(36),
-        db.ForeignKey('artist.mbid'),
+    import_method = Column(
+        Enum(ImportMethod))
+    found_mbid = Column(
+        String(36),
+        ForeignKey(
+            'artist.mbid',
+            onupdate="CASCADE",
+            ondelete="SET NULL",
+            deferrable=True,
+            initially="DEFERRED"),
         nullable=True)
-    date_added = db.Column(
-        db.DateTime(True),
+    date_added = Column(
+        DateTime(True),
         nullable=False,
         server_default=func.now(),
         default=func.now())
-    date_checked = db.Column(
-        db.DateTime(True),
+    date_checked = Column(
+        DateTime(True),
         nullable=True,
         server_default=expression.null(),
         default=None)
@@ -396,25 +430,33 @@ class ArtistImport(db.Model):
 
 
 class UserNotifications(db.Model):
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey('user.id'),
+    user_id = Column(
+        Integer,
+        ForeignKey(
+            'user.id',
+            onupdate="CASCADE",
+            ondelete="CASCADE"),
         primary_key=True)
-    date_created = db.Column(
-        db.DateTime(True),
+    date_created = Column(
+        DateTime(True),
         index=True,
         nullable=False,
         server_default=func.now(),
         default=func.now())
-    type = db.Column(
-        db.Enum(NotificationType),
+    type = Column(
+        Enum(NotificationType),
         index=True)
-    release_mbid = db.Column(
-        db.String(36),
-        db.ForeignKey('release.mbid'),
+    release_mbid = Column(
+        String(36),
+        ForeignKey(
+            'release.mbid',
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED"),
         primary_key=True)
-    date_sent = db.Column(
-        db.DateTime(True),
+    date_sent = Column(
+        DateTime(True),
         nullable=True,
         server_default=expression.null(),
         default=None)

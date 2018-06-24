@@ -1,4 +1,4 @@
-from flask import abort, request, jsonify, g, url_for
+from flask import request, jsonify, g
 
 from models import User
 from main import db

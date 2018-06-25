@@ -9,3 +9,6 @@ test:
 
 shell:
 	docker-compose -f docker-compose.local.yml build && docker-compose -f docker-compose.local.yml run --rm api bash -c "flask shell"
+
+upgrade:
+	docker-compose -f docker-compose.local.yml build && docker-compose -f docker-compose.local.yml run --rm api bash -c "flask db upgrade" && make down

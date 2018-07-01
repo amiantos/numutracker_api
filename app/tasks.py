@@ -1,5 +1,4 @@
 import redis
-import time
 from celery.schedules import crontab
 from main import celery
 from main import app as numu_app
@@ -53,7 +52,7 @@ def setup_periodic_tasks(sender, **kwargs):
 
 
 @celery.task
-@only_one(key="mb_task", timeout=60 * 5)
+@only_one(key="mb_task", timeout=60 * 60)
 def run_updates():
     numu_app.logger.info("Processing Imported Artists...")
     backend.process_imported_artists()

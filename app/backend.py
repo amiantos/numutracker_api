@@ -21,7 +21,7 @@ def get_artist_by_mbid(mbid):
 
 def get_artist_by_name(name):
     artist = Artist.query.filter_by(name=name).first()
-    if artist is None:    
+    if artist is None:
         aka = ArtistAka.query.filter_by(name=name).first()
         if aka:
             artist = Artist.query.filter_by(mbid=aka.artist_mbid).first()
@@ -222,7 +222,7 @@ def update_artists():
     limit = 100
 
     artists_to_update = Artist.query.filter(
-        # Artist.date_updated >= date_filter
+        Artist.date_updated <= date_filter
     ).order_by(
         Artist.date_updated.asc()
     ).limit(limit).all()
@@ -237,8 +237,9 @@ def process_imported_artists(check_musicbrainz=True):
     if check_musicbrainz:
         limit = 100
 
-    artist_imports = ArtistImport.query.filter_by(
-        found_mbid=None
+    artist_imports = ArtistImport.query.filter(
+        ArtistImport.found_mbid is None,
+        ArtistImport.date_checked <= date_filter
     ).order_by(
         ArtistImport.date_checked.asc(),
         ArtistImport.date_added.asc()

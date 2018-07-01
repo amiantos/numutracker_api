@@ -71,7 +71,10 @@ def get_artist(artist_mbid):
 
 def get_release(release_mbid):
     try:
-        result = mbz.get_release_group_by_id(release_mbid, includes=['artist-credits'])
+        result = mbz.get_release_group_by_id(
+            release_mbid,
+            includes=['artist-credits']
+        )
     except mbz.ResponseError as err:
         status = err.cause.code
         result = None

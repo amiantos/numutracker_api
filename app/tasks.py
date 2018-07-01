@@ -55,4 +55,5 @@ def setup_periodic_tasks(sender, **kwargs):
 @celery.task
 @only_one(key="mb_task", timeout=60 * 5)
 def run_updates():
-    backend.import_artists()
+    # backend.import_artists()
+    pass

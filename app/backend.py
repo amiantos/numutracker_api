@@ -66,9 +66,12 @@ def add_releases_from_mb(artist_mbid):
         if mb_release.get('id') in releases_added:
             continue
 
-        release = parse_mb_release(mb_release)
+        release = get_release(mb_release.get('id'))
+        if release is None:
+            release = parse_mb_release(mb_release)
+            if release:
+                db.session.add(release)
         if release:
-            db.session.add(release)
             releases_added.append(release.mbid)
 
     db.session.commit()
@@ -77,7 +80,7 @@ def add_releases_from_mb(artist_mbid):
 
 def parse_mb_release(mb_release):
     numu_date = get_numu_date(mb_release.get('first-release-date'))
-    if numu_date == '0000-01-01' or mb_release.get('artist-credit') is None:
+    if numu_date is None or mb_release.get('artist-credit') is None:
         return None
 
     release = get_release(mb_release.get('id'))
@@ -126,10 +129,23 @@ def update_artist_from_mb(artist):
         artist.name = mb_artist['name']
         artist.sort_name = mb_artist['sort-name']
         artist.disambiguation = mb_artist.get('disambiguation', '')
-        artist.date_updated = func.now()
 
+    # Update releases
+    for release in artist.releases:
+        update_release_from_mb(release)
+
+    # Add releases
+    add_releases_from_mb(artist.mbid)
+
+    # Update user releases
+    user_artists = UserArtist.query.filter_by(artist_mbid=artist.mbid).all()
+    for user_artist in user_artists:
+        create_user_releases(user_artist)
+
+    artist.date_updated = func.now()
     db.session.add(artist)
     db.session.commit()
+
     return artist
 
 
@@ -192,7 +208,6 @@ def create_user_releases(user_artist):
                 release_mbid=release.mbid,
                 add_method=AddMethod.AUTOMATIC
             )
-        user_release.date_updated = func.now()
         db.session.add(user_release)
 
     db.session.commit()
@@ -201,6 +216,19 @@ def create_user_releases(user_artist):
 # ------------------------------------------------------------------------
 # Tasks
 # ------------------------------------------------------------------------
+
+@celery.task
+def update_artists():
+    limit = 100
+
+    artists_to_update = Artist.query.filter(
+        # Artist.date_updated >= date_filter
+    ).order_by(
+        Artist.date_updated.asc()
+    ).limit(limit).all()
+
+    for artist in artists_to_update:
+        update_artist_from_mb(artist)
 
 
 @celery.task
@@ -212,7 +240,7 @@ def process_imported_artists(check_musicbrainz=True):
     artist_imports = ArtistImport.query.filter_by(
         found_mbid=None
     ).order_by(
-        ArtistImport.date_checked.desc(),
+        ArtistImport.date_checked.asc(),
         ArtistImport.date_added.asc()
     ).limit(limit).all()
 
@@ -261,8 +289,9 @@ def process_imported_artists(check_musicbrainz=True):
                 artist_import.import_method)
             create_user_releases(user_artist)
 
-    artist_import.date_checked = func.now()
-    db.session.add(artist_import)
+        artist_import.date_checked = func.now()
+        db.session.add(artist_import)
+
     db.session.commit()
 
 
@@ -276,6 +305,9 @@ def get_numu_date(mb_release_date):
     year = flat_date[:4] or '0000'
     month = flat_date[4:6] or '01'
     day = flat_date[6:8] or '01'
+
+    if year == '0000' or year == '????':
+        return None
 
     return "{}-{}-{}".format(year, month, day)
 

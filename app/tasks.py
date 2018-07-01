@@ -55,5 +55,12 @@ def setup_periodic_tasks(sender, **kwargs):
 @celery.task
 @only_one(key="mb_task", timeout=60 * 5)
 def run_updates():
-    # backend.import_artists()
-    pass
+    numu_app.logger.info("Processing Imported Artists...")
+    backend.process_imported_artists()
+    numu_app.logger.info("Completed: Imported Artists.")
+
+    numu_app.logger.info("Updating Artists")
+    backend.update_artists()
+    numu_app.logger.info("Completed: Updating Artists.")
+
+    return True

@@ -10,7 +10,7 @@ from models import Artist
 def import_artists():
     """Import artist information from API V2."""
     print("Importing artists from V2")
-    uri = "https://numutracker.com/v2/json.php?all_artists&key={}".format(app.config.get('NUMU_ENVIRONMENT'))
+    uri = "https://numutracker.com/v2/json.php?all_artists&key={}".format(app.config.get('APIV2_KEY'))
     try:
         uResponse = requests.get(uri)
     except requests.ConnectionError:

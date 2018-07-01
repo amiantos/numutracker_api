@@ -29,7 +29,9 @@ def new_user():
     if email is None or password is None:
         return jsonify({'error': 'Email or password not provided.'}), 400
     if User.query.filter_by(email=email).first() is not None:
-        return jsonify({'error': 'A user with that email already exists.'}), 400
+        return jsonify(
+            {'error': 'A user with that email already exists.'}
+        ), 400
     user = User(email=email)
     user.hash_password(password)
     db.session.add(user)
@@ -65,14 +67,23 @@ def import_artists():
     username = request.json.get('username')
     period = request.json.get('period')
     limit = request.json.get('limit')
-    if username is None or period not in ['7day', '1month', '3month', '6month', '12month', 'overall']:
-        return jsonify({'error': 'Username empty or period is incorrect.'}), 400
+    if username is None or period not in [
+        '7day',
+        '1month',
+        '3month',
+        '6month',
+        '12month',
+        'overall'
+    ]:
+        return jsonify(
+            {'error': 'Username empty or period is incorrect.'}
+        ), 400
 
     if limit is None or limit > 500:
         limit = 500
 
     result = lfm.download_artists(user, username, limit, period)
 
-    backend.import_artists.delay(False)
+    backend.process_imported_artists.delay(False)
 
     return jsonify(result), 200

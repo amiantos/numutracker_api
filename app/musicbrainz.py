@@ -55,21 +55,26 @@ def search_artist_by_name(name):
 
 
 def get_artist(artist_mbid):
+    result = None
     try:
         result = mbz.get_artist_by_id(artist_mbid)
     except mbz.ResponseError as err:
         status = err.cause.code
-        result = None
     else:
-        status = 200
-        result = result["artist"]
+        status = 404
+        if result['artist']['id'] not in blacklisted_artists:
+            status = 200
+            result = result["artist"]
 
     return {'status': status, 'artist': result}
 
 
 def get_release(release_mbid):
     try:
-        result = mbz.get_release_group_by_id(release_mbid)
+        result = mbz.get_release_group_by_id(
+            release_mbid,
+            includes=['artist-credits']
+        )
     except mbz.ResponseError as err:
         status = err.cause.code
         result = None

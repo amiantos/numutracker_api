@@ -142,7 +142,7 @@ def update_numu_artist_from_mb(artist):
     add_numu_releases_from_mb(artist.mbid)
 
     # Update user releases
-    user_artists = UserArtist.query.filter_by(artist_mbid=artist.mbid).all()
+    user_artists = UserArtist.query.filter_by(mbid=artist.mbid).all()
     for user_artist in user_artists:
         create_user_numu_releases(user_artist)
 
@@ -183,15 +183,21 @@ def update_numu_release_from_mb(release):
 # ------------------------------------------------------------------------
 
 
-def create_user_numu_artist(user_id, artist_mbid, import_method):
+def create_user_numu_artist(user_id, artist, import_method):
     user_artist = UserArtist.query.filter_by(
         user_id=user_id,
-        artist_mbid=artist_mbid
+        mbid=artist.mbid
     ).first()
     if user_artist is None:
         user_artist = UserArtist(
             user_id=user_id,
-            artist_mbid=artist_mbid,
+            mbid=artist.mbid,
+            name=artist.name,
+            sort_name=artist.sort_name,
+            disambiguation=artist.disambiguation,
+            art=artist.art,
+            apple_music_link=artist.apple_music_link,
+            spotify_link=artist.spotify_link,
             follow_method=import_method
         )
     db.session.add(user_artist)
@@ -271,7 +277,7 @@ def process_imported_artists(check_musicbrainz=True):
             artist_import.found_mbid = found_artist.mbid
             user_artist = create_user_numu_artist(
                 artist_import.user_id,
-                found_artist.mbid,
+                found_artist,
                 artist_import.import_method)
             db.session.add(user_artist)
         else:

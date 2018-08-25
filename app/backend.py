@@ -1,4 +1,5 @@
 from sqlalchemy.sql import func
+from sqlalchemy import or_
 from datetime import datetime, timedelta
 import musicbrainz as mb
 from main import app as numu_app
@@ -94,6 +95,9 @@ def parse_mb_release(mb_release):
     release.artists_string = mb_release.get('artist-credit-phrase')
     release.date_updated = func.now()
 
+    # Clear release artists before re-creating
+    release.artists = []
+
     for mb_artist in mb_release.get('artist-credit'):
         if type(mb_artist) == dict and mb_artist['artist']:
             artist = get_artist_by_mbid(mb_artist['artist']['id'])
@@ -122,7 +126,7 @@ def update_artist_from_mb(artist):
 
     if status == 200 and mb_artist['id'] != artist.mbid:
         # Artist has been merged
-        # Get followers for artist and ensure they've followed the new artist
+        # TODO: Get followers for artist and ensure they've followed the new artist
         artist.active = False
 
     if status == 200:
@@ -238,8 +242,9 @@ def process_imported_artists(check_musicbrainz=True):
         limit = 100
 
     artist_imports = ArtistImport.query.filter(
-        ArtistImport.found_mbid is None,
-        ArtistImport.date_checked <= date_filter
+        ArtistImport.found_mbid.is_(None),
+        or_(ArtistImport.date_checked <= date_filter,
+            ArtistImport.date_checked.is_(None))
     ).order_by(
         ArtistImport.date_checked.asc(),
         ArtistImport.date_added.asc()

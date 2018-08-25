@@ -426,7 +426,7 @@ class ArtistImport(db.Model):
     def __repr__(self):
         return '<ArtistImport {} - {}>'.format(
             self.user_id,
-            self.name)
+            self.import_name)
 
 
 class UserNotifications(db.Model):

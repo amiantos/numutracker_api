@@ -1,27 +1,19 @@
-import requests
-import json
+from utils import grab_json
 
 from main import app, db
 from models import ArtistImport, ImportMethod, UserActivity, ActivityTypes
 
 
 def download_artists(user, username, limit=500, period='overall', page=1):
-    """
-    Download artists from a LastFM account into the user's library.
-    Period options: overall | 7day | 1month | 3month | 6month | 12month 
-    """
-    uri = "http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user={}&limit={}&api_key={}&period={}&page={}&format=json".format(username, limit, app.config.get('LAST_FM_API_KEY'), period, page)
+    """Download artists from a LastFM account into the user's library.
 
-    try:
-        uResponse = requests.get(uri)
-    except requests.ConnectionError:
-        return "Connection Error"
-    Jresponse = uResponse.text
-    data = json.loads(Jresponse)
+    Period options: overall | 7day | 1month | 3month | 6month | 12month"""
+
+    data = grab_json("http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user={}&limit={}&api_key={}&period={}&page={}&format=json".format(username, limit, app.config.get('LAST_FM_API_KEY'), period, page))
 
     artists_added = 0
 
-    for artist in data['topartists']['artist']:
+    for artist in data.get('topartists').get('artist'):
         found_import = ArtistImport.query.filter_by(
             user_id=user.id,
             import_name=artist['name']).first()

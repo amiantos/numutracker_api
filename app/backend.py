@@ -1,4 +1,5 @@
 from sqlalchemy.sql import func
+from sqlalchemy import or_
 from datetime import datetime, timedelta
 import musicbrainz as mb
 from main import app as numu_app
@@ -241,8 +242,9 @@ def process_imported_artists(check_musicbrainz=True):
         limit = 100
 
     artist_imports = ArtistImport.query.filter(
-        ArtistImport.found_mbid is None,
-        ArtistImport.date_checked <= date_filter
+        ArtistImport.found_mbid.is_(None),
+        or_(ArtistImport.date_checked <= date_filter,
+            ArtistImport.date_checked.is_(None))
     ).order_by(
         ArtistImport.date_checked.asc(),
         ArtistImport.date_added.asc()

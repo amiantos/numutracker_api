@@ -23,8 +23,7 @@ def import_artists():
                 disambiguation=artist['disambiguation']
             )
             db.session.add(new_artist)
-
-    db.session.commit()
+            db.session.commit()
 
     print("Importing artist AKA from V2")
 

@@ -36,22 +36,22 @@ def get_release(release_mbid):
 def add_artist_from_mb(artist_name=None, artist_mbid=None):
     mb_results = mb.get_artist(artist_mbid)
 
-    if mb_results['status'] != 200 and artist_name:
+    if mb_results.get('status') != 200 and artist_name:
         mb_results = mb.search_artist_by_name(artist_name)
 
-    if mb_results['status'] == 200:
+    if mb_results.get('status') == 200:
         mb_artist = mb_results['artist']
-        new_artist = get_artist_by_mbid(mb_artist['id'])
-        if new_artist is None:
-            new_artist = Artist(
+        artist = get_artist_by_mbid(mb_artist['id'])
+        if artist is None:
+            artist = Artist(
                 mbid=mb_artist.get('id'),
                 name=mb_artist.get('name'),
                 sort_name=mb_artist.get('sort-name'),
                 disambiguation=mb_artist.get('disambiguation', '')
             )
-            db.session.add(new_artist)
+            db.session.add(artist)
             db.session.commit()
-        return new_artist
+        return artist
 
     return None
 
@@ -251,54 +251,34 @@ def process_imported_artists(check_musicbrainz=True):
     ).limit(limit).all()
 
     for artist_import in artist_imports:
-        found_artist = None
-
-        numu_app.logger.info("Checking {} {} {}".format(
+        numu_app.logger.info("Checking {} {}".format(
             artist_import.user_id,
-            artist_import.import_name,
-            artist_import.import_mbid))
+            artist_import.import_name))
 
-        if artist_import.import_mbid:
-            numu_app.logger.info("Searching locally by MBID...")
-            found_artist = get_artist_by_mbid(artist_import.import_mbid)
+        numu_app.logger.info("Searching locally by name...")
+        found_artist = get_artist_by_name(artist_import.import_name)
 
-        if found_artist is None:
-            numu_app.logger.info("Searching locally by name...")
-            found_artist = get_artist_by_name(artist_import.import_name)
-
-        if found_artist:
-            numu_app.logger.info("Artist found locally.")
-
-            artist_import.found_mbid = found_artist.mbid
-            db.session.add(artist_import)
-
-            user_artist = create_user_artist(
-                artist_import.user_id,
-                found_artist.mbid,
-                artist_import.import_method)
-
-            create_user_releases(user_artist)
-
-            continue
-
-        if check_musicbrainz:
-            numu_app.logger.info("Not Found Locally, Creating...")
+        if found_artist is None and check_musicbrainz:
+            numu_app.logger.info("Searching MusicBrainz...")
             found_artist = add_artist_from_mb(
                 artist_name=artist_import.import_name,
                 artist_mbid=artist_import.import_mbid
             )
+
+        if found_artist is not None:
+            numu_app.logger.info("Found artist!")
             artist_import.found_mbid = found_artist.mbid
-            add_releases_from_mb(found_artist.mbid)
             user_artist = create_user_artist(
                 artist_import.user_id,
                 found_artist.mbid,
                 artist_import.import_method)
-            create_user_releases(user_artist)
+            db.session.add(user_artist)
+        else:
+            numu_app.logger.info("Did not find artist.")
 
         artist_import.date_checked = func.now()
         db.session.add(artist_import)
-
-    db.session.commit()
+        db.session.commit()
 
 
 # ------------------------------------------------------------------------

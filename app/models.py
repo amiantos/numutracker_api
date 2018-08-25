@@ -210,9 +210,9 @@ class Artist(db.Model):
         default=None)
     date_updated = Column(
         DateTime(True),
-        nullable=False,
-        server_default=func.now(),
-        default=func.now())
+        nullable=True,
+        server_default=expression.null(),
+        default=None)
     apple_music_link = Column(
         String(),
         nullable=True)

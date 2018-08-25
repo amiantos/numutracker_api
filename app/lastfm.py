@@ -1,5 +1,4 @@
-import requests
-import json
+from utils import grab_json
 
 from main import app, db
 from models import ArtistImport, ImportMethod, UserActivity, ActivityTypes
@@ -10,13 +9,7 @@ def download_artists(user, username, limit=500, period='overall', page=1):
 
     Period options: overall | 7day | 1month | 3month | 6month | 12month"""
 
-    uri = "http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user={}&limit={}&api_key={}&period={}&page={}&format=json".format(username, limit, app.config.get('LAST_FM_API_KEY'), period, page)
-
-    try:
-        response = requests.get(uri)
-    except requests.ConnectionError:
-        return "Connection Error"
-    data = json.loads(response.text)
+    data = grab_json("http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user={}&limit={}&api_key={}&period={}&page={}&format=json".format(username, limit, app.config.get('LAST_FM_API_KEY'), period, page))
 
     artists_added = 0
 

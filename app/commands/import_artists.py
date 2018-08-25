@@ -1,5 +1,4 @@
-import requests
-import json
+from utils import grab_json
 
 from main import app
 from main import db
@@ -10,12 +9,8 @@ from models import Artist
 def import_artists():
     """Import artist information from API V2."""
     print("Importing artists from V2")
-    uri = "https://numutracker.com/v2/json.php?all_artists&key={}".format(app.config.get('APIV2_KEY'))
-    try:
-        response = requests.get(uri)
-    except requests.ConnectionError:
-        return "Connection Error"
-    data = json.loads(response.text)
+    data = grab_json("https://numutracker.com/v2/json.php?all_artists&key={}"
+                     .format(app.config.get('APIV2_KEY')))
 
     for artist in data:
         found_artist = Artist.query.filter_by(mbid=artist['mbid']).first()

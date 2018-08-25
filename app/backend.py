@@ -94,6 +94,9 @@ def parse_mb_release(mb_release):
     release.artists_string = mb_release.get('artist-credit-phrase')
     release.date_updated = func.now()
 
+    # Clear release artists before re-creating
+    release.artists = []
+
     for mb_artist in mb_release.get('artist-credit'):
         if type(mb_artist) == dict and mb_artist['artist']:
             artist = get_artist_by_mbid(mb_artist['artist']['id'])
@@ -122,7 +125,7 @@ def update_artist_from_mb(artist):
 
     if status == 200 and mb_artist['id'] != artist.mbid:
         # Artist has been merged
-        # Get followers for artist and ensure they've followed the new artist
+        # TODO: Get followers for artist and ensure they've followed the new artist
         artist.active = False
 
     if status == 200:

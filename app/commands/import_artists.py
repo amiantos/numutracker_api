@@ -12,11 +12,10 @@ def import_artists():
     print("Importing artists from V2")
     uri = "https://numutracker.com/v2/json.php?all_artists&key={}".format(app.config.get('APIV2_KEY'))
     try:
-        uResponse = requests.get(uri)
+        response = requests.get(uri)
     except requests.ConnectionError:
         return "Connection Error"
-    Jresponse = uResponse.text
-    data = json.loads(Jresponse)
+    data = json.loads(response.text)
 
     for artist in data:
         found_artist = Artist.query.filter_by(mbid=artist['mbid']).first()

@@ -276,8 +276,9 @@ def process_imported_artists(check_musicbrainz=True):
             db.session.add(user_artist)
         else:
             numu_app.logger.info("Did not find artist.")
+            if check_musicbrainz:
+                artist_import.date_checked = func.now()
 
-        artist_import.date_checked = func.now()
         db.session.add(artist_import)
         db.session.commit()
 

@@ -16,47 +16,49 @@ date_filter = datetime.now() - timedelta(days=3)
 # ------------------------------------------------------------------------
 
 
-def get_artist_by_mbid(mbid):
+def get_numu_artist_by_mbid(mbid):
     return Artist.query.filter_by(mbid=mbid).first()
 
 
-def get_artist_by_name(name):
-    artist = Artist.query.filter_by(name=name).first()
+def get_numu_artist_by_name(name):
+    artist = Artist.query.filter(
+        Artist.name.ilike("%{}%".format(name))).first()
     if artist is None:
-        aka = ArtistAka.query.filter_by(name=name).first()
+        aka = ArtistAka.query.filter(
+            ArtistAka.name.ilike("%{}%".format(name))).first()
         if aka:
             artist = Artist.query.filter_by(mbid=aka.artist_mbid).first()
     return artist
 
 
-def get_release(release_mbid):
+def get_numu_release(release_mbid):
     return Release.query.filter_by(mbid=release_mbid).first()
 
 
-def add_artist_from_mb(artist_name=None, artist_mbid=None):
+def add_numu_artist_from_mb(artist_name=None, artist_mbid=None):
     mb_results = mb.get_artist(artist_mbid)
 
-    if mb_results['status'] != 200 and artist_name:
+    if mb_results.get('status') != 200 and artist_name:
         mb_results = mb.search_artist_by_name(artist_name)
 
-    if mb_results['status'] == 200:
+    if mb_results.get('status') == 200:
         mb_artist = mb_results['artist']
-        new_artist = get_artist_by_mbid(mb_artist['id'])
-        if new_artist is None:
-            new_artist = Artist(
+        artist = get_numu_artist_by_mbid(mb_artist['id'])
+        if artist is None:
+            artist = Artist(
                 mbid=mb_artist.get('id'),
                 name=mb_artist.get('name'),
                 sort_name=mb_artist.get('sort-name'),
                 disambiguation=mb_artist.get('disambiguation', '')
             )
-            db.session.add(new_artist)
+            db.session.add(artist)
             db.session.commit()
-        return new_artist
+        return artist
 
     return None
 
 
-def add_releases_from_mb(artist_mbid):
+def add_numu_releases_from_mb(artist_mbid):
     mb_releases = mb.get_artist_releases(artist_mbid)
     releases_added = []
 
@@ -67,7 +69,7 @@ def add_releases_from_mb(artist_mbid):
         if mb_release.get('id') in releases_added:
             continue
 
-        release = get_release(mb_release.get('id'))
+        release = get_numu_release(mb_release.get('id'))
         if release is None:
             release = parse_mb_release(mb_release)
             if release:
@@ -84,7 +86,7 @@ def parse_mb_release(mb_release):
     if numu_date is None or mb_release.get('artist-credit') is None:
         return None
 
-    release = get_release(mb_release.get('id'))
+    release = get_numu_release(mb_release.get('id'))
     if release is None:
         release = Release()
 
@@ -100,9 +102,9 @@ def parse_mb_release(mb_release):
 
     for mb_artist in mb_release.get('artist-credit'):
         if type(mb_artist) == dict and mb_artist['artist']:
-            artist = get_artist_by_mbid(mb_artist['artist']['id'])
+            artist = get_numu_artist_by_mbid(mb_artist['artist']['id'])
             if artist is None:
-                artist = add_artist_from_mb(
+                artist = add_numu_artist_from_mb(
                     artist_mbid=mb_artist['artist']['id'])
             if artist and artist not in release.artists:
                 release.artists.append(artist)
@@ -115,7 +117,7 @@ def parse_mb_release(mb_release):
 # ------------------------------------------------------------------------
 
 
-def update_artist_from_mb(artist):
+def update_numu_artist_from_mb(artist):
     mb_result = mb.get_artist(artist.mbid)
     status = mb_result['status']
     mb_artist = mb_result['artist']
@@ -136,25 +138,26 @@ def update_artist_from_mb(artist):
 
     # Update releases
     for release in artist.releases:
-        update_release_from_mb(release)
+        update_numu_release_from_mb(release)
 
     # Add releases
-    add_releases_from_mb(artist.mbid)
+    add_numu_releases_from_mb(artist.mbid)
 
     # Update user releases
-    user_artists = UserArtist.query.filter_by(artist_mbid=artist.mbid).all()
+    user_artists = UserArtist.query.filter_by(mbid=artist.mbid).all()
     for user_artist in user_artists:
-        create_user_releases(user_artist)
+        create_user_numu_releases(user_artist)
 
     artist.date_updated = func.now()
+
     db.session.add(artist)
     db.session.commit()
 
     return artist
 
 
-def update_release_from_mb(release):
-    mb_result = mb.get_release(release.mbid)
+def update_numu_release_from_mb(release):
+    mb_result = mb.get_numu_release(release.mbid)
     status = mb_result['status']
     mb_release = mb_result['release']
 
@@ -165,8 +168,8 @@ def update_release_from_mb(release):
     if status == 200 and mb_release['id'] != release.mbid:
         # Release MBID is different, release has been merged
         # Mark release as deleted
-        # Check for different release in DB
-        # Update any user information to the different release
+        # TODO: Check for different release in DB
+        # TODO: Update any user information to the different release
         release.active = False
 
     if status == 200:
@@ -182,15 +185,21 @@ def update_release_from_mb(release):
 # ------------------------------------------------------------------------
 
 
-def create_user_artist(user_id, artist_mbid, import_method):
+def create_user_numu_artist(user_id, artist, import_method):
     user_artist = UserArtist.query.filter_by(
         user_id=user_id,
-        artist_mbid=artist_mbid
+        mbid=artist.mbid
     ).first()
     if user_artist is None:
         user_artist = UserArtist(
             user_id=user_id,
-            artist_mbid=artist_mbid,
+            mbid=artist.mbid,
+            name=artist.name,
+            sort_name=artist.sort_name,
+            disambiguation=artist.disambiguation,
+            art=artist.art,
+            apple_music_link=artist.apple_music_link,
+            spotify_link=artist.spotify_link,
             follow_method=import_method
         )
     db.session.add(user_artist)
@@ -198,7 +207,7 @@ def create_user_artist(user_id, artist_mbid, import_method):
     return user_artist
 
 
-def create_user_releases(user_artist):
+def create_user_numu_releases(user_artist):
     user = user_artist.user
     artist = user_artist.artist
 
@@ -232,7 +241,7 @@ def update_artists():
     ).limit(limit).all()
 
     for artist in artists_to_update:
-        update_artist_from_mb(artist)
+        update_numu_artist_from_mb(artist)
 
 
 @celery.task
@@ -251,54 +260,35 @@ def process_imported_artists(check_musicbrainz=True):
     ).limit(limit).all()
 
     for artist_import in artist_imports:
-        found_artist = None
-
-        numu_app.logger.info("Checking {} {} {}".format(
+        numu_app.logger.info("Checking {} {}".format(
             artist_import.user_id,
-            artist_import.import_name,
-            artist_import.import_mbid))
+            artist_import.import_name))
 
-        if artist_import.import_mbid:
-            numu_app.logger.info("Searching locally by MBID...")
-            found_artist = get_artist_by_mbid(artist_import.import_mbid)
+        numu_app.logger.info("Searching locally by name...")
+        found_artist = get_numu_artist_by_name(artist_import.import_name)
 
-        if found_artist is None:
-            numu_app.logger.info("Searching locally by name...")
-            found_artist = get_artist_by_name(artist_import.import_name)
-
-        if found_artist:
-            numu_app.logger.info("Artist found locally.")
-
-            artist_import.found_mbid = found_artist.mbid
-            db.session.add(artist_import)
-
-            user_artist = create_user_artist(
-                artist_import.user_id,
-                found_artist.mbid,
-                artist_import.import_method)
-
-            create_user_releases(user_artist)
-
-            continue
-
-        if check_musicbrainz:
-            numu_app.logger.info("Not Found Locally, Creating...")
-            found_artist = add_artist_from_mb(
+        if found_artist is None and check_musicbrainz:
+            numu_app.logger.info("Searching MusicBrainz...")
+            found_artist = add_numu_artist_from_mb(
                 artist_name=artist_import.import_name,
                 artist_mbid=artist_import.import_mbid
             )
+
+        if found_artist is not None:
+            numu_app.logger.info("Found artist!")
             artist_import.found_mbid = found_artist.mbid
-            add_releases_from_mb(found_artist.mbid)
-            user_artist = create_user_artist(
+            user_artist = create_user_numu_artist(
                 artist_import.user_id,
-                found_artist.mbid,
+                found_artist,
                 artist_import.import_method)
-            create_user_releases(user_artist)
+            db.session.add(user_artist)
+        else:
+            numu_app.logger.info("Did not find artist.")
+            if check_musicbrainz:
+                artist_import.date_checked = func.now()
 
-        artist_import.date_checked = func.now()
         db.session.add(artist_import)
-
-    db.session.commit()
+        db.session.commit()
 
 
 # ------------------------------------------------------------------------

@@ -1,8 +1,8 @@
 """initial migrations
 
-Revision ID: b8408a1e2cba
+Revision ID: 16e45698fe8c
 Revises: 
-Create Date: 2018-06-24 21:18:15.683756
+Create Date: 2018-08-26 00:06:46.774452
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b8408a1e2cba'
+revision = '16e45698fe8c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,7 +27,7 @@ def upgrade():
     sa.Column('art', sa.String(length=100), server_default=sa.text('NULL'), nullable=True),
     sa.Column('date_added', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('date_art_check', sa.DateTime(timezone=True), server_default=sa.text('NULL'), nullable=True),
-    sa.Column('date_updated', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('date_updated', sa.DateTime(timezone=True), server_default=sa.text('NULL'), nullable=True),
     sa.Column('apple_music_link', sa.String(), nullable=True),
     sa.Column('spotify_link', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('mbid')
@@ -100,6 +100,7 @@ def upgrade():
     sa.Column('release_mbid', sa.String(length=36), nullable=True),
     sa.Column('artist_mbid', sa.String(length=36), nullable=True),
     sa.Column('activity', sa.Enum('LISTENED', 'UNLISTENED', 'FOLLOW_ARTIST', 'FOLLOW_RELEASE', 'UNFOLLOW_ARTIST', 'UNFOLLOW_RELEASE', 'APPLE_IMPORT', 'SPOTIFY_IMPORT', 'LASTFM_IMPORT', 'COMMENT_ARTIST', 'COMMENT_RELEASE', 'RATED_RELEASE', name='activitytypes'), nullable=True),
+    sa.Column('data', sa.JSON(), nullable=True),
     sa.ForeignKeyConstraint(['artist_mbid'], ['artist.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
     sa.ForeignKeyConstraint(['release_mbid'], ['release.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE'),
@@ -107,13 +108,22 @@ def upgrade():
     )
     op.create_table('user_artist',
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('artist_mbid', sa.String(length=36), nullable=False),
+    sa.Column('mbid', sa.String(length=36), nullable=False),
+    sa.Column('name', sa.String(length=512), nullable=False),
+    sa.Column('sort_name', sa.String(length=512), nullable=False),
+    sa.Column('disambiguation', sa.String(length=512), nullable=False),
+    sa.Column('art', sa.String(length=100), server_default=sa.text('NULL'), nullable=True),
+    sa.Column('date_updated', sa.DateTime(timezone=True), server_default=sa.text('NULL'), nullable=True),
+    sa.Column('apple_music_link', sa.String(), nullable=True),
+    sa.Column('spotify_link', sa.String(), nullable=True),
     sa.Column('date_followed', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('follow_method', sa.Enum('APPLE', 'SPOTIFY', 'LASTFM', name='importmethod'), nullable=True),
-    sa.ForeignKeyConstraint(['artist_mbid'], ['artist.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
+    sa.Column('following', sa.Boolean(), server_default=sa.text('false'), nullable=True),
+    sa.ForeignKeyConstraint(['mbid'], ['artist.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('user_id', 'artist_mbid')
+    sa.PrimaryKeyConstraint('user_id', 'mbid')
     )
+    op.create_index(op.f('ix_user_artist_following'), 'user_artist', ['following'], unique=False)
     op.create_table('user_notifications',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
@@ -128,16 +138,26 @@ def upgrade():
     op.create_index(op.f('ix_user_notifications_type'), 'user_notifications', ['type'], unique=False)
     op.create_table('user_release',
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('release_mbid', sa.String(length=36), nullable=False),
+    sa.Column('mbid', sa.String(length=36), nullable=False),
+    sa.Column('title', sa.String(length=512), nullable=False),
+    sa.Column('artists_string', sa.String(length=512), nullable=False),
+    sa.Column('type', sa.Enum('ALBUM', 'AUDIOBOOK', 'BROADCAST', 'COMPILATION', 'DEMO', 'DJ_MIX', 'EP', 'INTERVIEW', 'LIVE', 'MIX_TAPE', 'OTHER', 'REMIX', 'SINGLE', 'SOUNDTRACK', 'SPOKENWORD', 'UNKNOWN', name='releasetype'), nullable=True),
+    sa.Column('date_release', sa.Date(), server_default=sa.text('NULL'), nullable=False),
+    sa.Column('art', sa.String(length=100), server_default=sa.text('NULL'), nullable=True),
+    sa.Column('date_updated', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('apple_music_link', sa.String(), nullable=True),
+    sa.Column('spotify_link', sa.String(), nullable=True),
     sa.Column('date_added', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('add_method', sa.Enum('AUTOMATIC', 'MANUAL', 'LISTENED', name='addmethod'), nullable=True),
+    sa.Column('listened', sa.Boolean(), server_default=sa.text('false'), nullable=True),
     sa.Column('date_listened', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('rating', sa.Numeric(precision=3, scale=2), nullable=False),
-    sa.Column('active', sa.Boolean(), server_default=sa.text('true'), nullable=True),
-    sa.ForeignKeyConstraint(['release_mbid'], ['release.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
+    sa.ForeignKeyConstraint(['mbid'], ['release.mbid'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True),
-    sa.PrimaryKeyConstraint('user_id', 'release_mbid')
+    sa.PrimaryKeyConstraint('user_id', 'mbid')
     )
+    op.create_index(op.f('ix_user_release_date_listened'), 'user_release', ['date_listened'], unique=False)
+    op.create_index(op.f('ix_user_release_date_release'), 'user_release', ['date_release'], unique=False)
+    op.create_index(op.f('ix_user_release_type'), 'user_release', ['type'], unique=False)
     op.create_index(op.f('ix_user_release_user_id'), 'user_release', ['user_id'], unique=False)
     # ### end Alembic commands ###
 
@@ -145,10 +165,14 @@ def upgrade():
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_index(op.f('ix_user_release_user_id'), table_name='user_release')
+    op.drop_index(op.f('ix_user_release_type'), table_name='user_release')
+    op.drop_index(op.f('ix_user_release_date_release'), table_name='user_release')
+    op.drop_index(op.f('ix_user_release_date_listened'), table_name='user_release')
     op.drop_table('user_release')
     op.drop_index(op.f('ix_user_notifications_type'), table_name='user_notifications')
     op.drop_index(op.f('ix_user_notifications_date_created'), table_name='user_notifications')
     op.drop_table('user_notifications')
+    op.drop_index(op.f('ix_user_artist_following'), table_name='user_artist')
     op.drop_table('user_artist')
     op.drop_table('user_activity')
     op.drop_table('artist_release')

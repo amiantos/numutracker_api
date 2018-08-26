@@ -4,7 +4,7 @@ from itsdangerous import BadSignature, SignatureExpired
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from passlib.apps import custom_app_context as pwd_context
 from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
-                        Numeric, String)
+                        Numeric, String, JSON)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import expression, func
 
@@ -142,6 +142,7 @@ class UserActivity(db.Model):
             initially="DEFERRED"),
         nullable=True)
     activity = Column(Enum(ActivityTypes))
+    data = Column(JSON)
 
     user = relationship(User, lazy=True, uselist=False)
     release = relationship("Release", lazy=True, uselist=False)
@@ -210,9 +211,9 @@ class Artist(db.Model):
         default=None)
     date_updated = Column(
         DateTime(True),
-        nullable=False,
-        server_default=func.now(),
-        default=func.now())
+        nullable=True,
+        server_default=expression.null(),
+        default=None)
     apple_music_link = Column(
         String(),
         nullable=True)
@@ -254,7 +255,8 @@ class UserArtist(db.Model):
             onupdate="CASCADE",
             ondelete="CASCADE"),
         primary_key=True)
-    artist_mbid = Column(
+
+    mbid = Column(
         String(36),
         ForeignKey(
             'artist.mbid',
@@ -263,6 +265,32 @@ class UserArtist(db.Model):
             deferrable=True,
             initially="DEFERRED"),
         primary_key=True)
+    name = Column(
+        String(512),
+        nullable=False)
+    sort_name = Column(
+        String(512),
+        nullable=False)
+    disambiguation = Column(
+        String(512),
+        nullable=False)
+    art = Column(
+        String(100),
+        nullable=True,
+        server_default=expression.null(),
+        default=None)
+    date_updated = Column(
+        DateTime(True),
+        nullable=True,
+        server_default=expression.null(),
+        default=None)
+    apple_music_link = Column(
+        String(),
+        nullable=True)
+    spotify_link = Column(
+        String(),
+        nullable=True)
+
     date_followed = Column(
         DateTime(True),
         nullable=False,
@@ -270,12 +298,16 @@ class UserArtist(db.Model):
         default=func.now())
     follow_method = Column(
         Enum(ImportMethod))
+    following = Column(
+        Boolean(),
+        server_default=expression.false(),
+        default=True,
+        index=True)
 
     user = relationship(User, lazy=True, uselist=False)
-    artist = relationship(Artist, lazy=False, uselist=False)
 
     def __repr__(self):
-        return '<UserArtist {} - {}>'.format(self.user_id, self.artist_mbid)
+        return '<UserArtist {} - {}>'.format(self.user_id, self.mbid)
 
 
 class Release(db.Model):
@@ -348,7 +380,8 @@ class UserRelease(db.Model):
             initially="DEFERRED"),
         index=True,
         primary_key=True)
-    release_mbid = Column(
+
+    mbid = Column(
         String(36),
         ForeignKey(
             'release.mbid',
@@ -357,6 +390,38 @@ class UserRelease(db.Model):
             deferrable=True,
             initially="DEFERRED"),
         primary_key=True)
+    title = Column(
+        String(512),
+        nullable=False)
+    artists_string = Column(
+        String(512),
+        nullable=False)
+    type = Column(
+        Enum(ReleaseType),
+        index=True)
+    date_release = Column(
+        db.Date,
+        nullable=False,
+        index=True,
+        server_default=expression.null(),
+        default=None)
+    art = Column(
+        String(100),
+        nullable=True,
+        server_default=expression.null(),
+        default=None)
+    date_updated = Column(
+        DateTime(True),
+        nullable=False,
+        server_default=func.now(),
+        default=func.now())
+    apple_music_link = Column(
+        String(),
+        nullable=True)
+    spotify_link = Column(
+        String(),
+        nullable=True)
+
     date_added = Column(
         DateTime(True),
         nullable=False,
@@ -364,19 +429,15 @@ class UserRelease(db.Model):
         default=func.now())
     add_method = Column(
         Enum(AddMethod))
+
+    listened = Column(
+        Boolean(),
+        server_default=expression.false(),
+        default=False)
     date_listened = Column(
         DateTime(True),
-        nullable=True)
-    rating = Column(
-        Numeric(3, 2),
-        default=0,
-        nullable=False)
-    active = Column(
-        Boolean(),
-        server_default=expression.true(),
-        default=True)
-
-    release = relationship(Release, lazy='joined', uselist=False)
+        nullable=True,
+        index=True)
 
     def __repr__(self):
         return '<UserRelease {} - {}>'.format(

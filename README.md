@@ -32,6 +32,7 @@ APIv3 is being built to support the next generation of the iOS app. The main goa
 
 ## To Install
 1. `git clone https://github.com/amiantos/numutracker_api.git`
+2. `make upgrade`
 3. `make up`
 
 ## Author

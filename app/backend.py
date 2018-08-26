@@ -121,35 +121,34 @@ def update_numu_artist_from_mb(artist):
     mb_result = mb.get_artist(artist.mbid)
     status = mb_result['status']
     mb_artist = mb_result['artist']
+    changed = False
 
     if status == 404:
         # Artist has been deleted
         artist.active = False
+        changed = True
 
     if status == 200 and mb_artist['id'] != artist.mbid:
         # Artist has been merged
         # TODO: Get followers for artist and ensure they've followed the new artist
         artist.active = False
+        changed = True
 
     if status == 200:
-        artist.name = mb_artist['name']
-        artist.sort_name = mb_artist['sort-name']
-        artist.disambiguation = mb_artist.get('disambiguation', '')
+        if artist.name != mb_artist['name']:
+            artist.name = mb_artist['name']
+            changed = True
+        if artist.sort_name != mb_artist['sort-name']:
+            artist.sort_name = mb_artist['sort-name']
+            changed = True
+        if artist.disambiguation != mb_artist.get('disambiguation', ''):
+            artist.disambiguation = mb_artist.get('disambiguation', '')
+            changed = True
 
-    # Update releases
-    for release in artist.releases:
-        update_numu_release_from_mb(release)
+    if changed:
+        artist.date_updated = func.now()
 
-    # Add releases
-    add_numu_releases_from_mb(artist.mbid)
-
-    # Update user releases
-    user_artists = UserArtist.query.filter_by(mbid=artist.mbid).all()
-    for user_artist in user_artists:
-        create_user_numu_releases(user_artist)
-
-    artist.date_updated = func.now()
-
+    artist.date_checked = func.now()
     db.session.add(artist)
     db.session.commit()
 

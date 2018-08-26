@@ -1,12 +1,13 @@
-from sqlalchemy.sql import func
-from sqlalchemy import or_
 from datetime import datetime, timedelta
+
 import musicbrainz as mb
 from main import app as numu_app
 from main import celery, db
 from models import (AddMethod, Artist, ArtistAka, ArtistImport, ImportMethod,
-                    Release, ReleaseType, UserArtist, UserRelease)
-
+                    Release, ReleaseType, UserArtist, UserNotifications,
+                    UserRelease)
+from sqlalchemy import or_
+from sqlalchemy.sql import func
 
 date_filter = datetime.now() - timedelta(days=3)
 
@@ -38,10 +39,10 @@ def get_numu_release(release_mbid):
 def add_numu_artist_from_mb(artist_name=None, artist_mbid=None):
     mb_results = mb.get_artist(artist_mbid)
 
-    if mb_results.get('status') != 200 and artist_name:
+    if artist_name and mb_results and mb_results.get('status') != 200:
         mb_results = mb.search_artist_by_name(artist_name)
 
-    if mb_results.get('status') == 200:
+    if mb_results and mb_results.get('status') == 200:
         mb_artist = mb_results['artist']
         artist = get_numu_artist_by_mbid(mb_artist['id'])
         if artist is None:
@@ -53,12 +54,17 @@ def add_numu_artist_from_mb(artist_name=None, artist_mbid=None):
             )
             db.session.add(artist)
             db.session.commit()
+
+            # Add releases
+            add_numu_releases_from_mb(artist.mbid)
+
         return artist
 
     return None
 
 
 def add_numu_releases_from_mb(artist_mbid):
+    """Add new releases from musicbrainz."""
     mb_releases = mb.get_artist_releases(artist_mbid)
     releases_added = []
 
@@ -74,14 +80,19 @@ def add_numu_releases_from_mb(artist_mbid):
             release = parse_mb_release(mb_release)
             if release:
                 db.session.add(release)
+                db.session.commit()
         if release:
             releases_added.append(release.mbid)
 
-    db.session.commit()
+    create_user_numu_releases(artist_mbid)
+
     return releases_added
 
 
 def parse_mb_release(mb_release):
+    """Parse an MB release and turn it into a release object.
+
+    Returns (unsaved) release object."""
     numu_date = get_numu_date(mb_release.get('first-release-date'))
     if numu_date is None or mb_release.get('artist-credit') is None:
         return None
@@ -97,9 +108,6 @@ def parse_mb_release(mb_release):
     release.artists_string = mb_release.get('artist-credit-phrase')
     release.date_updated = func.now()
 
-    # Clear release artists before re-creating
-    release.artists = []
-
     for mb_artist in mb_release.get('artist-credit'):
         if type(mb_artist) == dict and mb_artist['artist']:
             artist = get_numu_artist_by_mbid(mb_artist['artist']['id'])
@@ -110,6 +118,42 @@ def parse_mb_release(mb_release):
                 release.artists.append(artist)
 
     return release
+
+# ------------------------------------------------------------------------
+# Relationships
+# ------------------------------------------------------------------------
+
+
+def update_numu_user_releases(artist_mbid):
+    """Create or update user releases for an artist."""
+    users = UserArtist.query.filter_by(mbid=artist_mbid).all()
+    releases = Artist.query.filter_by(mbid=artist_mbid).first().releases
+
+    for user in users:
+        for release in releases:
+            notify = False
+
+            user_release = UserRelease.query.filter_by(
+                user_id=user.id, mbid=release.mbid).first()
+            if user_release is None:
+                user_release = UserRelease()
+                notify = True
+            user_release.user_id = user.id
+            user_release.mbid = release.mbid
+            user_release.title = release.title
+            user_release.artists_string = release.artists_string
+            user_release.type = release.type
+            user_release.date_release = release.date_release
+            user_release.art = release.art
+            user_release.apple_music_link = release.apple_music_link
+            user_release.spotify_link = release.spotify_link
+            user_release.date_updated = func.now()
+            db.session.add(user_release)
+            db.session.commit()
+
+            # TODO: Process Notifications
+            if notify:
+                pass
 
 
 # ------------------------------------------------------------------------
@@ -130,7 +174,7 @@ def update_numu_artist_from_mb(artist):
 
     if status == 200 and mb_artist['id'] != artist.mbid:
         # Artist has been merged
-        # TODO: Get followers for artist and ensure they've followed the new artist
+        # TODO: Get followers for artist and follow the new artist
         artist.active = False
         changed = True
 
@@ -147,6 +191,10 @@ def update_numu_artist_from_mb(artist):
 
     if changed:
         artist.date_updated = func.now()
+        # TODO: Update all instances of user artist
+
+    # Add any new releases from MusicBrainz
+    add_numu_releases_from_mb(artist.mbid)
 
     artist.date_checked = func.now()
     db.session.add(artist)
@@ -166,7 +214,6 @@ def update_numu_release_from_mb(release):
 
     if status == 200 and mb_release['id'] != release.mbid:
         # Release MBID is different, release has been merged
-        # Mark release as deleted
         # TODO: Check for different release in DB
         # TODO: Update any user information to the different release
         release.active = False
@@ -199,10 +246,16 @@ def create_user_numu_artist(user_id, artist, import_method):
             art=artist.art,
             apple_music_link=artist.apple_music_link,
             spotify_link=artist.spotify_link,
-            follow_method=import_method
+            follow_method=import_method,
+            date_followed=func.now(),
+            following=True
         )
     db.session.add(user_artist)
     db.session.commit()
+
+    # Create user releases
+    update_numu_user_releases(artist.mbid)
+
     return user_artist
 
 
@@ -234,9 +287,9 @@ def update_artists():
     limit = 100
 
     artists_to_update = Artist.query.filter(
-        Artist.date_updated <= date_filter
+        Artist.date_checked <= date_filter
     ).order_by(
-        Artist.date_updated.asc()
+        Artist.date_checked.asc()
     ).limit(limit).all()
 
     for artist in artists_to_update:
@@ -276,11 +329,11 @@ def process_imported_artists(check_musicbrainz=True):
         if found_artist is not None:
             numu_app.logger.info("Found artist!")
             artist_import.found_mbid = found_artist.mbid
-            user_artist = create_user_numu_artist(
+            create_user_numu_artist(
                 artist_import.user_id,
                 found_artist,
                 artist_import.import_method)
-            db.session.add(user_artist)
+
         else:
             numu_app.logger.info("Did not find artist.")
             if check_musicbrainz:

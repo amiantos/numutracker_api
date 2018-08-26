@@ -21,9 +21,11 @@ def get_numu_artist_by_mbid(mbid):
 
 
 def get_numu_artist_by_name(name):
-    artist = Artist.query.filter_by(name=name).first()
+    artist = Artist.query.filter(
+        Artist.name.ilike("%{}%".format(name))).first()
     if artist is None:
-        aka = ArtistAka.query.filter_by(name=name).first()
+        aka = ArtistAka.query.filter(
+            ArtistAka.name.ilike("%{}%".format(name))).first()
         if aka:
             artist = Artist.query.filter_by(mbid=aka.artist_mbid).first()
     return artist

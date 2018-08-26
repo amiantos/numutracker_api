@@ -1,8 +1,8 @@
 """initial migrations
 
-Revision ID: 16e45698fe8c
+Revision ID: 661a72be0ec1
 Revises: 
-Create Date: 2018-08-26 00:06:46.774452
+Create Date: 2018-08-26 07:19:46.867933
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '16e45698fe8c'
+revision = '661a72be0ec1'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,6 +27,7 @@ def upgrade():
     sa.Column('art', sa.String(length=100), server_default=sa.text('NULL'), nullable=True),
     sa.Column('date_added', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('date_art_check', sa.DateTime(timezone=True), server_default=sa.text('NULL'), nullable=True),
+    sa.Column('date_checked', sa.DateTime(timezone=True), server_default=sa.text('NULL'), nullable=True),
     sa.Column('date_updated', sa.DateTime(timezone=True), server_default=sa.text('NULL'), nullable=True),
     sa.Column('apple_music_link', sa.String(), nullable=True),
     sa.Column('spotify_link', sa.String(), nullable=True),
@@ -43,6 +44,7 @@ def upgrade():
     sa.Column('date_added', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('date_art_check', sa.DateTime(timezone=True), server_default=sa.text('NULL'), nullable=True),
     sa.Column('date_updated', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('date_checked', sa.DateTime(timezone=True), server_default=sa.text('NULL'), nullable=True),
     sa.Column('apple_music_link', sa.String(), nullable=True),
     sa.Column('spotify_link', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('mbid')

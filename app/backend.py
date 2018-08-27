@@ -320,7 +320,7 @@ def process_imported_artists(check_musicbrainz=True):
             )
             # Add releases
             if found_artist:
-                add_numu_releases_from_mb(found_artist.mbid)
+                add_numu_releases_from_mb(found_artist)
 
         if found_artist is not None:
             numu_app.logger.info("Found artist!")

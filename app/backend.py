@@ -281,8 +281,8 @@ def update_artists():
         or_(Artist.date_checked <= date_filter,
             Artist.date_checked.is_(None))
     ).order_by(
-        Artist.date_added.asc(),
-        Artist.date_checked.asc()
+        Artist.date_checked.asc().nullsfirst(),
+        Artist.date_added.asc().nullsfirst()
     ).limit(limit).all()
 
     for artist in artists_to_update:
@@ -300,7 +300,7 @@ def process_imported_artists(check_musicbrainz=True):
         or_(ArtistImport.date_checked <= date_filter,
             ArtistImport.date_checked.is_(None))
     ).order_by(
-        ArtistImport.date_checked.asc(),
+        ArtistImport.date_checked.asc().nullsfirst(),
         ArtistImport.date_added.asc()
     ).limit(limit).all()
 

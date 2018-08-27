@@ -56,7 +56,10 @@ def add_numu_artist_from_mb(artist_name=None, artist_mbid=None):
             db.session.commit()
 
             add_numu_releases_from_mb(artist.mbid)
+            artist.date_checked = func.now()
 
+            db.session.add(artist)
+            db.session.commit()
 
         return artist
 
@@ -164,7 +167,8 @@ def update_numu_artist_from_mb(artist):
     add_numu_releases_from_mb(artist.mbid)
 
     # Update user releases
-    update_numu_user_releases(artist.mbid, notifications=True)
+    notifications = False if artist.date_checked is None else True
+    update_numu_user_releases(artist.mbid, notifications)
 
     artist.date_checked = func.now()
     db.session.add(artist)
@@ -272,7 +276,8 @@ def update_artists():
     limit = 100
 
     artists_to_update = Artist.query.filter(
-        Artist.date_checked <= date_filter
+        or_(Artist.date_checked <= date_filter,
+            Artist.date_checked.is_(None))
     ).order_by(
         Artist.date_checked.asc()
     ).limit(limit).all()

@@ -50,14 +50,9 @@ def add_numu_artist_from_mb(artist_name=None, artist_mbid=None):
                 mbid=mb_artist.get('id'),
                 name=mb_artist.get('name'),
                 sort_name=mb_artist.get('sort-name'),
-                disambiguation=mb_artist.get('disambiguation', '')
+                disambiguation=mb_artist.get('disambiguation', ''),
+                date_updated=func.now()
             )
-            db.session.add(artist)
-            db.session.commit()
-
-            add_numu_releases_from_mb(artist.mbid)
-            artist.date_checked = func.now()
-
             db.session.add(artist)
             db.session.commit()
 
@@ -66,9 +61,9 @@ def add_numu_artist_from_mb(artist_name=None, artist_mbid=None):
     return None
 
 
-def add_numu_releases_from_mb(artist_mbid):
+def add_numu_releases_from_mb(artist):
     """Add new releases from musicbrainz."""
-    mb_releases = mb.get_artist_releases(artist_mbid)
+    mb_releases = mb.get_artist_releases(artist.mbid)
     releases_added = []
 
     if mb_releases['status'] != 200:
@@ -85,6 +80,10 @@ def add_numu_releases_from_mb(artist_mbid):
 
         if release:
             releases_added.append(release.mbid)
+
+    artist.date_checked = func.now()
+    db.session.add(artist)
+    db.session.commit()
 
     return releases_added
 
@@ -164,7 +163,7 @@ def update_numu_artist_from_mb(artist):
         # TODO: Update all instances of user artist
 
     # Add any new releases from MusicBrainz
-    add_numu_releases_from_mb(artist.mbid)
+    add_numu_releases_from_mb(artist)
 
     # Update user releases
     notifications = False if artist.date_checked is None else True
@@ -228,7 +227,7 @@ def create_user_numu_artist(user_id, artist, import_method):
     db.session.add(user_artist)
     db.session.commit()
 
-    update_numu_user_releases(artist.mbid)
+    update_numu_user_releases(artist.mbid, notifications=False)
 
     return user_artist
 
@@ -263,7 +262,10 @@ def update_numu_user_releases(artist_mbid, notifications=True):
 
             # TODO: Process Notifications
             if notify and notifications:
+                numu_app.logger.info("Generating notifications...")
                 pass
+            else:
+                numu_app.logger.info("No notifications...")
 
 
 # ------------------------------------------------------------------------
@@ -279,6 +281,7 @@ def update_artists():
         or_(Artist.date_checked <= date_filter,
             Artist.date_checked.is_(None))
     ).order_by(
+        Artist.date_added.asc(),
         Artist.date_checked.asc()
     ).limit(limit).all()
 
@@ -315,6 +318,9 @@ def process_imported_artists(check_musicbrainz=True):
                 artist_name=artist_import.import_name,
                 artist_mbid=artist_import.import_mbid
             )
+            # Add releases
+            if found_artist:
+                add_numu_releases_from_mb(found_artist.mbid)
 
         if found_artist is not None:
             numu_app.logger.info("Found artist!")

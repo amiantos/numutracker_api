@@ -209,6 +209,11 @@ class Artist(db.Model):
         nullable=True,
         server_default=expression.null(),
         default=None)
+    date_checked = Column(
+        DateTime(True),
+        nullable=True,
+        server_default=expression.null(),
+        default=None)
     date_updated = Column(
         DateTime(True),
         nullable=True,
@@ -353,6 +358,11 @@ class Release(db.Model):
         nullable=False,
         server_default=func.now(),
         default=func.now())
+    date_checked = Column(
+        DateTime(True),
+        nullable=True,
+        server_default=expression.null(),
+        default=None)
     apple_music_link = Column(
         String(),
         nullable=True)

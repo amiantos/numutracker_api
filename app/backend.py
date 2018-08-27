@@ -55,8 +55,8 @@ def add_numu_artist_from_mb(artist_name=None, artist_mbid=None):
             db.session.add(artist)
             db.session.commit()
 
-            # Add releases
             add_numu_releases_from_mb(artist.mbid)
+
 
         return artist
 
@@ -76,20 +76,17 @@ def add_numu_releases_from_mb(artist_mbid):
             continue
 
         release = get_numu_release(mb_release.get('id'))
+
         if release is None:
-            release = parse_mb_release(mb_release)
-            if release:
-                db.session.add(release)
-                db.session.commit()
+            release = create_or_update_numu_release(mb_release)
+
         if release:
             releases_added.append(release.mbid)
-
-    create_user_numu_releases(artist_mbid)
 
     return releases_added
 
 
-def parse_mb_release(mb_release):
+def create_or_update_numu_release(mb_release):
     """Parse an MB release and turn it into a release object.
 
     Returns (unsaved) release object."""
@@ -108,6 +105,9 @@ def parse_mb_release(mb_release):
     release.artists_string = mb_release.get('artist-credit-phrase')
     release.date_updated = func.now()
 
+    db.session.add(release)
+    db.session.commit()
+
     for mb_artist in mb_release.get('artist-credit'):
         if type(mb_artist) == dict and mb_artist['artist']:
             artist = get_numu_artist_by_mbid(mb_artist['artist']['id'])
@@ -117,43 +117,10 @@ def parse_mb_release(mb_release):
             if artist and artist not in release.artists:
                 release.artists.append(artist)
 
+    db.session.add(release)
+    db.session.commit()
+
     return release
-
-# ------------------------------------------------------------------------
-# Relationships
-# ------------------------------------------------------------------------
-
-
-def update_numu_user_releases(artist_mbid):
-    """Create or update user releases for an artist."""
-    users = UserArtist.query.filter_by(mbid=artist_mbid).all()
-    releases = Artist.query.filter_by(mbid=artist_mbid).first().releases
-
-    for user in users:
-        for release in releases:
-            notify = False
-
-            user_release = UserRelease.query.filter_by(
-                user_id=user.id, mbid=release.mbid).first()
-            if user_release is None:
-                user_release = UserRelease()
-                notify = True
-            user_release.user_id = user.id
-            user_release.mbid = release.mbid
-            user_release.title = release.title
-            user_release.artists_string = release.artists_string
-            user_release.type = release.type
-            user_release.date_release = release.date_release
-            user_release.art = release.art
-            user_release.apple_music_link = release.apple_music_link
-            user_release.spotify_link = release.spotify_link
-            user_release.date_updated = func.now()
-            db.session.add(user_release)
-            db.session.commit()
-
-            # TODO: Process Notifications
-            if notify:
-                pass
 
 
 # ------------------------------------------------------------------------
@@ -196,13 +163,16 @@ def update_numu_artist_from_mb(artist):
     # Add any new releases from MusicBrainz
     add_numu_releases_from_mb(artist.mbid)
 
+    # Update user releases
+    update_numu_user_releases(artist.mbid, notifications=True)
+
     artist.date_checked = func.now()
     db.session.add(artist)
     db.session.commit()
 
     return artist
 
-
+"""
 def update_numu_release_from_mb(release):
     mb_result = mb.get_numu_release(release.mbid)
     status = mb_result['status']
@@ -219,11 +189,12 @@ def update_numu_release_from_mb(release):
         release.active = False
 
     if status == 200:
-        release = parse_mb_release(mb_release)
+        release = create_or_update_numu_release(mb_release)
 
     db.session.add(release)
     db.session.commit()
     return release
+"""
 
 
 # ------------------------------------------------------------------------
@@ -253,34 +224,48 @@ def create_user_numu_artist(user_id, artist, import_method):
     db.session.add(user_artist)
     db.session.commit()
 
-    # Create user releases
     update_numu_user_releases(artist.mbid)
 
     return user_artist
 
 
-def create_user_numu_releases(user_artist):
-    user = user_artist.user
-    artist = user_artist.artist
+def update_numu_user_releases(artist_mbid, notifications=True):
+    """Create or update user releases for an artist."""
+    user_artists = UserArtist.query.filter_by(mbid=artist_mbid).all()
+    releases = Artist.query.filter_by(mbid=artist_mbid).first().releases
 
-    for release in artist.releases:
-        user_release = UserRelease.query.filter_by(
-            user_id=user.id,
-            release_mbid=release.mbid).first()
-        if user_release is None:
-            user_release = UserRelease(
-                user_id=user.id,
-                release_mbid=release.mbid,
-                add_method=AddMethod.AUTOMATIC
-            )
-        db.session.add(user_release)
+    for user_artist in user_artists:
+        for release in releases:
+            notify = False
 
-    db.session.commit()
+            user_release = UserRelease.query.filter_by(
+                user_id=user_artist.user_id, mbid=release.mbid).first()
+            if user_release is None:
+                user_release = UserRelease()
+                user_release.add_method = AddMethod.AUTOMATIC
+                notify = True
+            user_release.user_id = user_artist.user_id
+            user_release.mbid = release.mbid
+            user_release.title = release.title
+            user_release.artists_string = release.artists_string
+            user_release.type = release.type
+            user_release.date_release = release.date_release
+            user_release.art = release.art
+            user_release.apple_music_link = release.apple_music_link
+            user_release.spotify_link = release.spotify_link
+            user_release.date_updated = func.now()
+            db.session.add(user_release)
+            db.session.commit()
+
+            # TODO: Process Notifications
+            if notify and notifications:
+                pass
 
 
 # ------------------------------------------------------------------------
 # Tasks
 # ------------------------------------------------------------------------
+
 
 @celery.task
 def update_artists():

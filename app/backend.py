@@ -158,7 +158,7 @@ def update_numu_artist_from_mb(artist):
             artist.disambiguation = mb_artist.get('disambiguation', '')
             changed = True
 
-    if changed:
+    if changed or artist.date_updated is None:
         artist.date_updated = func.now()
         # TODO: Update all instances of user artist
 

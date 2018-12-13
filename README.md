@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.org/amiantos/numutracker_api.svg?branch=master)](https://travis-ci.org/amiantos/numutracker_api)
-
-# Numu Tracker API v3
+# Numu Tracker API
 
 This is the home for the third version of the Numu Tracker API. If you're not familiar with what Numu Tracker is, check out [the iOS App repository](https://www.github.com/amiantos/numutracker_ios) to see what it is all about, or keep reading.
 
@@ -21,7 +19,7 @@ User privacy is very important to Numu Tracker. The official instance of Numu Tr
 APIv3 is being built to support the next generation of the iOS app. The main goals of the project are:
 
 1. Expand the Numu Tracker API to be more fully featured (w/ password reset requests, full GDPR compliance).
-2. Containerizer the API and make it easier to develop for and contribute to.
+2. Implement the API as a series of microservices deployable to Amazon AWS.
 3. Improve the app experience with the following feature improvements:
     - Releases with multiple Artists should be properly supported (no duplicate Releases).
     - You should be able to add individual releases to Your Releases without following the artist.

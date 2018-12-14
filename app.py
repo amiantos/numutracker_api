@@ -1,17 +1,22 @@
 import logging
-import os
+from os import environ
 from flask import Flask
 from flask_httpauth import HTTPBasicAuth
+from flask_bcrypt import Bcrypt
 
 
 app = Flask(__name__)
 
+bcrypt = Bcrypt(app)
+
 auth = HTTPBasicAuth()
+
+app.config.from_object("config.%s" % environ.get('environment', 'development').title())
 
 
 @app.route('/')
 def hello_world():
-    return 'Numu Tracker API - {}'.format(os.environ.get('environment'))
+    return 'Numu Tracker API - {}'.format(app.config.get('ENVIROMENT'))
 
 
 @app.before_first_request

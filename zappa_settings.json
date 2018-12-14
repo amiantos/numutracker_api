@@ -5,6 +5,7 @@
         "profile_name": "brad",
         "project_name": "numutracker-api",
         "runtime": "python3.6",
-        "s3_bucket": "numu-api"
+        "s3_bucket": "numu-api",
+        "use_precompiled_packages": true
     }
 }

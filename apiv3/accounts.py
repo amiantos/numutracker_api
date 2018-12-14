@@ -1,8 +1,15 @@
-from flask import jsonify, g
+import uuid
 
-from app import auth
+import boto3
+from flask import jsonify, request
+
 from app import app as numu_app
+from app import auth, bcrypt
+
 from . import app
+
+USERS_TABLE = numu_app.config.get('USERS_TABLE')
+dyanmodb = boto3.client('dynamodb')
 
 
 @auth.verify_password
@@ -12,23 +19,33 @@ def verify_password(email_or_token, password):
     return True
 
 
-"""
 @app.route('/user', methods=['POST'])
 def new_user():
     email = request.json.get('email')
     password = request.json.get('password')
-    if email is None or password is None:
+    icloud = request.json.get('icloud')
+    if (email is None or password is None) and icloud is None:
         return jsonify({'error': 'Email or password not provided.'}), 400
-    if User.query.filter_by(email=email).first() is not None:
-        return jsonify(
-            {'error': 'A user with that email already exists.'}
-        ), 400
-    user = User(email=email)
-    user.hash_password(password)
-    db.session.add(user)
-    db.session.commit()
-    return jsonify({'email': user.email}), 201
-"""
+    # Check for existing user
+
+    # Create new user record
+    user_uuid = uuid.uuid4().hex
+    user_item = {
+        'uuid': {'S': user_uuid}
+    }
+    if password:
+        hashed_password = bcrypt.generate_password_hash(password)
+        user_item['password'] = {'B': hashed_password}
+    if email:
+        user_item['email'] = {'S': email}
+    if icloud:
+        user_item['icloud'] = {'S': icloud}
+
+    resp = dyanmodb.put_item(
+        TableName=USERS_TABLE,
+        Item=user_item)
+
+    return jsonify({'uuid': user_uuid}), 201
 
 
 @app.route('/user')

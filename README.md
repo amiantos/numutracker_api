@@ -30,8 +30,14 @@ APIv3 is being built to support the next generation of the iOS app. The main goa
 
 ## To Install
 1. `git clone https://github.com/amiantos/numutracker_api.git`
-2. `make upgrade`
-3. `make up`
+1. `virtualenv venv`
+1. `source venv/bin/activate`
+1. `pip install -r requirements.txt`
+1. `export environment=development`
+1. `export FLASK_ENV=development`
+1. `flask run`
+
+If you really intend on trying to deploy this to Lambda for yourself, [you should follow this guide to build dependencies](https://blog.zappa.io/posts/docker-zappa-and-python3).
 
 ## Author
 

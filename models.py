@@ -1,12 +1,19 @@
+from datetime import datetime
+
+import pytz
+
 from app import app as numu_app
-from pynamodb.attributes import BinaryAttribute, UnicodeAttribute, BooleanAttribute
+from pynamodb.attributes import (BinaryAttribute, BooleanAttribute,
+                                 UnicodeAttribute, UTCDateTimeAttribute)
 from pynamodb.indexes import AllProjection, GlobalSecondaryIndex
 from pynamodb.models import Model
+
+utc_tz = pytz.timezone('UTC')
+
 
 # --------------------------------------
 # User
 # --------------------------------------
-
 
 class EmailIndex(GlobalSecondaryIndex):
     class Meta:
@@ -35,6 +42,9 @@ class User(Model):
     icloud = UnicodeAttribute(null=True)
     email_index = EmailIndex()
     icloud_index = iCloudIndex()
+
+    date_joined = UTCDateTimeAttribute(default=datetime.now(utc_tz))
+
     # Filter Settings
     album = BooleanAttribute(default=True)
     single = BooleanAttribute(default=True)

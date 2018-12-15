@@ -33,7 +33,7 @@ APIv3 is being built to support the next generation of the iOS app. The main goa
 1. `virtualenv venv`
 1. `source venv/bin/activate`
 1. `pip install -r requirements.txt`
-1. `export environment=development`
+1. `export NUMU_ENV=development`
 1. `export FLASK_ENV=development`
 1. `flask run`
 

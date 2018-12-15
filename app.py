@@ -1,7 +1,10 @@
 import logging
 from os import environ
+
 from flask import Flask
 from flask_httpauth import HTTPBasicAuth
+
+from apiv3 import app as api_v3
 from flask_bcrypt import Bcrypt
 
 
@@ -32,5 +35,4 @@ def setup_logging():
         app.logger.setLevel(logging.INFO)
 
 
-from apiv3 import app as api_v3
 app.register_blueprint(api_v3, url_prefix='/v3')

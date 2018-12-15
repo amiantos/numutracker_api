@@ -1,7 +1,7 @@
 import response
 import db
 
-from flask import g, jsonify, request
+from flask import g, request
 
 from app import bcrypt, app as numu_app
 from app import auth

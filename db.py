@@ -1,16 +1,12 @@
 import uuid
-import boto3
-from boto3.dynamodb.conditions import Key
-from botocore.exceptions import ClientError
-from app import bcrypt, app as numu_app
+
+from app import bcrypt
 from models import User
 
 
-USERS_TABLE = numu_app.config.get('USERS_TABLE')
-
-dbclient = boto3.client('dynamodb')
-dbresource = boto3.resource('dynamodb')
-
+# --------------------------------------
+# User
+# --------------------------------------
 
 def insert_user(email=None, icloud=None, password=None):
     user_uuid = uuid.uuid4().hex
@@ -18,7 +14,11 @@ def insert_user(email=None, icloud=None, password=None):
     if password:
         hashed_password = bcrypt.generate_password_hash(password)
 
-    new_user = User(user_uuid, password=hashed_password, icloud=icloud, email=email)
+    new_user = User(
+        user_uuid,
+        password=hashed_password,
+        icloud=icloud,
+        email=email)
     new_user.save()
 
     return new_user

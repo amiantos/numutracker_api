@@ -11,7 +11,7 @@ bcrypt = Bcrypt(app)
 
 auth = HTTPBasicAuth()
 
-app.config.from_object("config.%s" % environ.get('environment', 'development').title())
+app.config.from_object("config.%s" % environ.get('NUMU_ENV', 'development').title())
 
 
 @app.route('/')

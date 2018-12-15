@@ -1,22 +1,31 @@
-import uuid
+import response
+import db
 
-import boto3
-from flask import jsonify, request
+from flask import g, jsonify, request
 
-from app import app as numu_app
-from app import auth, bcrypt
+from app import bcrypt, app as numu_app
+from app import auth
 
 from . import app
-
-USERS_TABLE = numu_app.config.get('USERS_TABLE')
-dyanmodb = boto3.client('dynamodb')
 
 
 @auth.verify_password
 def verify_password(email_or_token, password):
+    g.user = None
     # first try to authenticate by token
     numu_app.logger.info("Got {} - {}".format(email_or_token, password))
-    return True
+    if password == 'icloud':
+        user = db.get_user_by_icloud(email_or_token)
+        if user:
+            g.user = user
+            return True
+    else:
+        user = db.get_user_by_email(email_or_token)
+        if user and bcrypt.check_password_hash(user.password, password):
+            g.user = user
+            return True
+
+    return False
 
 
 @app.route('/user', methods=['POST'])
@@ -25,31 +34,22 @@ def new_user():
     password = request.json.get('password')
     icloud = request.json.get('icloud')
     if (email is None or password is None) and icloud is None:
-        return jsonify({'error': 'Email or password not provided.'}), 400
-    # Check for existing user
+        return response.error("Email not provided.")
 
-    # Create new user record
-    user_uuid = uuid.uuid4().hex
-    user_item = {
-        'uuid': {'S': user_uuid}
-    }
-    if password:
-        hashed_password = bcrypt.generate_password_hash(password)
-        user_item['password'] = {'B': hashed_password}
-    if email:
-        user_item['email'] = {'S': email}
-    if icloud:
-        user_item['icloud'] = {'S': icloud}
+    if icloud and db.get_user_by_icloud(icloud):
+        return response.error("User already exists with that iCloud ID.")
 
-    resp = dyanmodb.put_item(
-        TableName=USERS_TABLE,
-        Item=user_item)
+    if email and db.get_user_by_email(email):
+        return response.error("User already exists with that email.")
 
-    return jsonify({'uuid': user_uuid}), 201
+    user = db.insert_user(email, icloud, password)
+    if user:
+        return response.success("New user created: {}".format(user.uuid))
+    else:
+        return response.error("An unknown error occurred when creating the account.")
 
 
 @app.route('/user')
 @auth.login_required
 def get_user():
-    numu_app.logger.info("Got Self.")
-    return jsonify({'email': 'Moo'})
+    return response.success({'user': {'email': g.user.email, 'icloud': g.user.icloud}})

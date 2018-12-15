@@ -11,6 +11,9 @@ RUN echo 'export PS1="\[\e[36m\]zappashell>\[\e[m\] "' >> /root/.bashrc
 # RUN yum clean all && \
 #    yum -y install <stuff>
 
+ENV FLASK_ENV development
+ENV NUMU_ENV development
+
 EXPOSE 5000
 
 CMD ["bash"]

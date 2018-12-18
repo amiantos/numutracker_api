@@ -27,8 +27,7 @@ def setup_logging():
     if not app.debug:
         log_handler = logging.StreamHandler()
         log_handler.setFormatter(logging.Formatter(
-            '%(asctime)s %(levelname)s: %(message)s '
-            '[in %(pathname)s:%(lineno)d]'
+            "%(asctime)s | %(pathname)s:%(lineno)d | %(funcName)s | %(levelname)s | %(message)s"
         ))
         log_handler.setLevel(logging.INFO)
         app.logger.addHandler(log_handler)

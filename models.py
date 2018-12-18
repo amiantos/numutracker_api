@@ -1,5 +1,5 @@
 from sqlalchemy import (Binary, Boolean, Column, Date, DateTime,
-                        ForeignKey, Integer, String)
+                        ForeignKey, Integer, String, Index)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -182,6 +182,9 @@ class UserRelease(db.Model):
         return '<UserRelease {} - {}>'.format(
             self.user_id,
             self.mbid)
+
+
+Index('user_releases', UserRelease.user_id, UserRelease.type, UserRelease.date_release.desc())
 
 
 class ArtistImport(db.Model):

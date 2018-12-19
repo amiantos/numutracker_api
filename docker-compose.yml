@@ -1,6 +1,6 @@
 version: '3'
 services:
-  numu-api:
+  api:
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,7 +11,7 @@ services:
     ports:
       - "80:80"
     networks:
-      - numunet
+      - numu_net
     depends_on:
       - postgres
       - redis
@@ -28,7 +28,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - numunet
+      - numu_net
 
   redis:
     image: redis
@@ -36,7 +36,7 @@ services:
     volumes:
       - numu_redis:/var/lib/redis/data
     networks:
-      - numunet
+      - numu_net
 
 volumes:
   numu_pgdata:
@@ -45,6 +45,6 @@ volumes:
     driver: local
 
 networks:
-  numunet:
+  numu_net:
     driver: bridge
     external: false

@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - DB_URI=postgresql://numu:numu@postgres/numu
+    volumes:
+      - ./:/opt/app
     ports:
       - "80:80"
     networks:

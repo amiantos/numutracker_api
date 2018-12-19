@@ -8,7 +8,6 @@ from flask_migrate import Migrate
 from flask_httpauth import HTTPBasicAuth
 from flask_bcrypt import Bcrypt
 
-
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 

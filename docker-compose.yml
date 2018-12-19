@@ -1,0 +1,48 @@
+version: '3'
+services:
+  numu-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_URI=postgresql://numu:numu@postgres/numu
+    ports:
+      - "80:80"
+    networks:
+      - numunet
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:10.4
+    volumes:
+      - numu_pgdata:/var/lib/postgresql/data/pgdata
+    environment:
+      - POSTGRES_USER=numu
+      - POSTGRES_DB=numu
+      - POSTGRES_PASSWORD=numu
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    networks:
+      - numunet
+
+  redis:
+    image: redis
+    command: redis-server --requirepass numu
+    volumes:
+      - numu_redis:/var/lib/redis/data
+    networks:
+      - numunet
+
+volumes:
+  numu_pgdata:
+    driver: local
+  numu_redis:
+    driver: local
+
+networks:
+  numunet:
+    driver: bridge
+    external: false

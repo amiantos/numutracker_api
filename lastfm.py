@@ -26,6 +26,7 @@ def download_artists(user, username, limit=500, period='overall', page=1):
             db.session.add(new_import)
             artists_added += 1
 
-    db.session.commit()
+    if artists_added > 0:
+        db.session.commit()
 
     return artists_added

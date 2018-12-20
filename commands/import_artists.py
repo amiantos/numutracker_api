@@ -49,12 +49,14 @@ def import_artists():
     for aka in data:
         found_artist = Artist.query.filter_by(mbid=aka['mbid']).first()
         if found_artist is not None:
-            print("ADDED AKA: {} - AKA: {}".format(
-                found_artist.name, aka['aka_name']))
-            new_aka = ArtistAka(
-                artist_mbid=found_artist.mbid,
-                name=aka['aka_name']
-            )
-            db.session.add(new_aka)
+            found_aka = ArtistAka.query.filter_by(artist_mbid=aka['mbid'], name=aka['aka_name']).first()
+            if found_aka is None:
+                print("ADDED AKA: {} - AKA: {}".format(
+                    found_artist.name, aka['aka_name']))
+                new_aka = ArtistAka(
+                    artist_mbid=found_artist.mbid,
+                    name=aka['aka_name']
+                )
+                db.session.add(new_aka)
 
     db.session.commit()

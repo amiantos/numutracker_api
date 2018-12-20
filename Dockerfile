@@ -16,9 +16,6 @@ RUN pip3 install -r /tmp/requirements.txt
 
 COPY . /opt/app
 
-RUN useradd --create-home --shell /bin/bash numu
-RUN chown -R numu:numu /opt/app
-
 ENV PYTHONIOENCODING utf-8
 ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8

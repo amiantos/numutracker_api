@@ -17,7 +17,7 @@ def import_artists():
 
     while processing is True:
         uri = "https://numutracker.com/v2/json.php?all_artists&key={}&limit={}&offset={}".format(
-            app.config.get('APIV2_KEY'), limit, offset)
+            app.config.get('NUMU_V2_API_KEY'), limit, offset)
         data = grab_json(uri)
         if not data:
             processing = False
@@ -44,7 +44,7 @@ def import_artists():
 
     data = grab_json(
         "https://numutracker.com/v2/json.php?all_artist_aka&key={}".format(
-            app.config.get('APIV2_KEY')))
+            app.config.get('NUMU_V2_API_KEY')))
 
     for aka in data:
         found_artist = Artist.query.filter_by(mbid=aka['mbid']).first()

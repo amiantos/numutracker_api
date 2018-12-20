@@ -14,7 +14,6 @@ services:
       - numu_net
     depends_on:
       - postgres
-      - redis
 
   postgres:
     image: postgres:10.4
@@ -30,18 +29,8 @@ services:
     networks:
       - numu_net
 
-  redis:
-    image: redis
-    command: redis-server --requirepass numu
-    volumes:
-      - numu_redis:/var/lib/redis/data
-    networks:
-      - numu_net
-
 volumes:
   numu_pgdata:
-    driver: local
-  numu_redis:
     driver: local
 
 networks:

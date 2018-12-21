@@ -24,9 +24,11 @@ def mb_processing():
     ).order_by(Artist.date_checked.asc().nullsfirst()).limit(limit).all()
 
     for artist in artists:
-        numu_app.logger.info("Updating Artist: {}".format(artist))
-        updated_artist = update_numu_artist_from_mb(artist)
-        numu_app.logger.info("Updated Artist: {}".format(updated_artist))
+        current_time = time.time()
+        if (current_time - start)/60 < 14:
+            numu_app.logger.info("Updating Artist: {}".format(artist))
+            updated_artist = update_numu_artist_from_mb(artist)
+            numu_app.logger.info("Updated Artist: {}".format(updated_artist))
 
     # Scan releases
 

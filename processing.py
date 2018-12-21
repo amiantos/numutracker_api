@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from numu import app as numu_app, db
 
 
-def scan_artist_art(limit=50):
+def scan_artist_art(limit=100):
     date_offset = datetime.now() - timedelta(days=14)
     artists = Artist.query.filter(
         Artist.art.is_(False),
@@ -28,7 +28,7 @@ def scan_artist_art(limit=50):
         db.session.commit()
 
 
-def scan_release_art(limit=50):
+def scan_release_art(limit=100):
     date_offset = datetime.now() - timedelta(days=14)
     releases = Release.query.filter(
         Release.art.is_(False),

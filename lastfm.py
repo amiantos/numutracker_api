@@ -42,16 +42,16 @@ def get_artist_art(artist):
         full_url = images[2]['#text']
         large_url = images[3]['#text']
 
-    if thumb_url and full_url and large_url:
-        image_name = artist.mbid + ".png"
-        try:
-            put_image_from_url(thumb_url, "artist/thumb/" + image_name)
-            put_image_from_url(full_url, "artist/full/" + image_name)
-            put_image_from_url(large_url, "artist/large/" + image_name)
-            return True
-        except Exception as e:
-            app.logger.error("Put artist image failed: {}".format(e))
-            return False
+        if thumb_url and full_url and large_url:
+            image_name = artist.mbid + ".png"
+            try:
+                put_image_from_url(thumb_url, "artist/thumb/" + image_name)
+                put_image_from_url(full_url, "artist/full/" + image_name)
+                put_image_from_url(large_url, "artist/large/" + image_name)
+                return True
+            except Exception as e:
+                app.logger.error("Put artist image failed: {}".format(e))
+                return False
 
     return False
 
@@ -65,15 +65,15 @@ def get_release_art(release):
         full_url = images[2]['#text']
         large_url = images[3]['#text']
 
-    if thumb_url and full_url and large_url:
-        image_name = release.mbid + ".png"
-        try:
-            put_image_from_url(thumb_url, "artist/thumb/" + image_name)
-            put_image_from_url(full_url, "artist/full/" + image_name)
-            put_image_from_url(large_url, "artist/large/" + image_name)
-            return True
-        except Exception as e:
-            app.logger.error("Put artist image failed: {}".format(e))
-            return False
+        if thumb_url and full_url and large_url:
+            image_name = release.mbid + ".png"
+            try:
+                put_image_from_url(thumb_url, "artist/thumb/" + image_name)
+                put_image_from_url(full_url, "artist/full/" + image_name)
+                put_image_from_url(large_url, "artist/large/" + image_name)
+                return True
+            except Exception as e:
+                app.logger.error("Put artist image failed: {}".format(e))
+                return False
 
     return False

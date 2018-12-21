@@ -31,6 +31,7 @@ def mb_processing():
             numu_app.logger.info("Updated Artist: {}".format(updated_artist))
         else:
             numu_app.logger.error("Hit maximum execution time, aborting...")
+            break
 
     # Scan releases
 

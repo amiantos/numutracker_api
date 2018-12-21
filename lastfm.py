@@ -1,5 +1,6 @@
 from utils import grab_json
-
+from urllib.parse import quote_plus
+from utils import put_image_from_url
 from numu import app, db
 from models import ArtistImport
 
@@ -30,3 +31,49 @@ def download_artists(user, username, limit=500, period='overall', page=1):
         db.session.commit()
 
     return artists_added
+
+
+def get_artist_art(artist):
+    data = grab_json("http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={}&api_key={}&format=json".format(quote_plus(artist.name), app.config.get('LAST_FM_API_KEY')))
+
+    images = data.get('artist', {}).get('image')
+    if images:
+        thumb_url = images[1]['#text']
+        full_url = images[2]['#text']
+        large_url = images[3]['#text']
+
+    if thumb_url and full_url and large_url:
+        image_name = artist.mbid + ".png"
+        try:
+            put_image_from_url(thumb_url, "artist/thumb/" + image_name)
+            put_image_from_url(full_url, "artist/full/" + image_name)
+            put_image_from_url(large_url, "artist/large/" + image_name)
+            return True
+        except Exception as e:
+            app.logger.error("Put artist image failed: {}".format(e))
+            return False
+
+    return False
+
+
+def get_release_art(release):
+    data = grab_json("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&artist={}&album={}&api_key={}".format(quote_plus(release.artist_names), quote_plus(release.title), app.config.get('LAST_FM_API_KEY')))
+
+    images = data.get('album', {}).get('image')
+    if images:
+        thumb_url = images[1]['#text']
+        full_url = images[2]['#text']
+        large_url = images[3]['#text']
+
+    if thumb_url and full_url and large_url:
+        image_name = release.mbid + ".png"
+        try:
+            put_image_from_url(thumb_url, "artist/thumb/" + image_name)
+            put_image_from_url(full_url, "artist/full/" + image_name)
+            put_image_from_url(large_url, "artist/large/" + image_name)
+            return True
+        except Exception as e:
+            app.logger.error("Put artist image failed: {}".format(e))
+            return False
+
+    return False

@@ -1,7 +1,7 @@
 from sqlalchemy import (Binary, Boolean, Column, Date, DateTime,
                         ForeignKey, Integer, String, Index)
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, expression
 
 from numu import db
 
@@ -59,7 +59,7 @@ class Artist(db.Model):
     name = Column(String(512), nullable=False)
     sort_name = Column(String(512), nullable=False)
     disambiguation = Column(String(512), nullable=False)
-    art = Column(String(100), nullable=True, default=None)
+    art = Column(Boolean(), nullable=False, default=False, server_default=expression.false())
 
     date_added = Column(DateTime(True), nullable=False, default=func.now())
     date_art_check = Column(DateTime(True), nullable=True, default=None)
@@ -123,7 +123,7 @@ class Release(db.Model):
     title = Column(String(512), nullable=False)
     artist_names = Column(String(512), nullable=False)
     type = Column(String(36), index=True)
-    art = Column(Boolean(), nullable=True, default=None)
+    art = Column(Boolean(), nullable=False, default=False, server_default=expression.false())
 
     date_release = Column(Date(), nullable=False, index=True)
     date_added = Column(DateTime(True), nullable=False, default=func.now())

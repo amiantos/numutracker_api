@@ -1,7 +1,18 @@
 import requests
 import json
 from models import ArtistImport
-from numu import db
+from numu import db, app
+import boto3
+
+
+session = boto3.session.Session()
+client = session.client(
+    's3',
+    region_name='sfo2',
+    endpoint_url='https://sfo2.digitaloceanspaces.com',
+    aws_access_key_id=app.config.get('DO_ACCESS_KEY'),
+    aws_secret_access_key=app.config.get('DO_SECRET_KEY')
+)
 
 
 def grab_json(uri):
@@ -10,6 +21,16 @@ def grab_json(uri):
     except requests.ConnectionError:
         return None
     return json.loads(response.text)
+
+
+def put_image_from_url(url, name):
+    with requests.get(url, stream=True) as r:
+        client.upload_fileobj(
+            r.raw,
+            'numu',
+            name
+        )
+        client.put_object_acl(ACL='public-read', Bucket='numu', Key=name)
 
 
 def import_artists(user, artists, import_method):

@@ -79,7 +79,10 @@ def create_or_update_numu_release(mb_release):
     release.title = mb_release.get('title')
     release.type = get_numu_type(mb_release)
     release.date_release = numu_date
-    release.artist_names = mb_release.get('artist-credit-phrase')
+    artist_names = mb_release.get('artist-credit-phrase')
+    if len(artist_names) > 40:
+        artist_names = "Various Artists"
+    release.artist_names = artist_names
     release.date_updated = func.now()
 
     db.session.add(release)

@@ -57,7 +57,7 @@ def get_artist_art(artist):
 
 
 def get_release_art(release):
-    data = grab_json("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&artist={}&album={}&api_key={}".format(quote_plus(release.artist_names), quote_plus(release.title), app.config.get('LAST_FM_API_KEY')))
+    data = grab_json("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&artist={}&album={}&api_key={}&format=json".format(quote_plus(release.artist_names), quote_plus(release.title), app.config.get('LAST_FM_API_KEY')))
 
     images = data.get('album', {}).get('image')
     if images:

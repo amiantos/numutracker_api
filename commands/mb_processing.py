@@ -11,7 +11,7 @@ import time
 def mb_processing():
     """This command handles the periodic querying of MusicBrainz for new data."""
     date_offset = datetime.now() - timedelta(days=14)
-    limit = 30
+    limit = 200
     numu_app.logger.info("Starting MB process...")
     start = time.time()
 

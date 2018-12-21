@@ -42,6 +42,7 @@ def add_numu_releases_from_mb(artist):
     releases_added = []
 
     if mb_releases['status'] != 200:
+        numu_app.logger.info("No releases found.")
         return None
 
     for mb_release in mb_releases['releases']:
@@ -102,24 +103,47 @@ def create_or_update_numu_release(mb_release):
 # Update Data
 # ------------------------------------------------------------------------
 
+def delete_numu_artist(artist):
+    """Delete provided Numu Artist"""
+    # Delete all releases
+    for release in artist.releases:
+        db.session.delete(release)
+    # Delete artist
+    db.session.delete(artist)
+    db.session.commit()
+    return True
+
 
 def update_numu_artist_from_mb(artist):
     mb_result = mb.get_artist(artist.mbid)
     status = mb_result['status']
     mb_artist = mb_result['artist']
     changed = False
-    deleted = False
 
     if status == 404:
         # Artist has been deleted
-        deleted = True
+        numu_app.logger.info("Artist Deleted: {}".format(artist))
+        delete_numu_artist(artist)
+        return None
 
     if status == 200 and mb_artist['id'] != artist.mbid:
         # Artist has been merged
-        # TODO: Get followers for artist and follow the new artist
-        deleted = True
+        new_mbid = mb_artist['id']
+        numu_app.logger.info("Artist Merged: {}, New MBID: {}".format(artist, new_mbid))
+        new_artist = repo.get_numu_artist_by_mbid(new_mbid)
+        if not new_artist:
+            new_artist = add_numu_artist_from_mb(artist_mbid=new_mbid)
+            add_numu_releases_from_mb(new_artist)
+        user_artists = UserArtist.query.filter_by(mbid=new_mbid).all()
+        for user_artist in user_artists:
+            user_artist.mbid = new_artist.mbid
+            user_artist.date_updated = None
+            db.session.add(user_artist)
+        db.session.commit()
+        delete_numu_artist(artist)
         changed = True
-
+        artist = new_artist
+    
     if status == 200:
         if artist.name != mb_artist['name']:
             artist.name = mb_artist['name']
@@ -132,8 +156,11 @@ def update_numu_artist_from_mb(artist):
             changed = True
 
     if changed or artist.date_updated is None:
+        numu_app.logger.info("Changes Detected! Updating User Artists...")
         artist.date_updated = func.now()
-        # TODO: Update all instances of user artist
+        user_artists = UserArtist.query.filter_by(mbid=artist.mbid).all()
+        for user_artist in user_artists:
+            update_user_artist(user_artist, artist)
 
     # Add any new releases from MusicBrainz
     add_numu_releases_from_mb(artist)
@@ -173,6 +200,19 @@ def update_numu_release_from_mb(release):
 # ------------------------------------------------------------------------
 # Create Relationships
 # ------------------------------------------------------------------------
+
+def update_user_artist(user_artist, new_artist):
+    user_artist.name = new_artist.name
+    user_artist.sort_name = new_artist.sort_name
+    user_artist.disambiguation = new_artist.disambiguation
+    user_artist.art = new_artist.art
+    user_artist.date_updated = new_artist.date_updated
+    user_artist.apple_music_link = new_artist.apple_music_link
+    user_artist.spotify_link = new_artist.spotify_link
+
+    db.session.add(user_artist)
+    db.session.commit()
+    return user_artist
 
 
 def create_or_update_user_artist(user_id, artist, import_method):

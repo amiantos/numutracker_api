@@ -68,12 +68,12 @@ def get_release_art(release):
         if thumb_url and full_url and large_url:
             image_name = release.mbid + ".png"
             try:
-                put_image_from_url(thumb_url, "artist/thumb/" + image_name)
-                put_image_from_url(full_url, "artist/full/" + image_name)
-                put_image_from_url(large_url, "artist/large/" + image_name)
+                put_image_from_url(thumb_url, "release/thumb/" + image_name)
+                put_image_from_url(full_url, "release/full/" + image_name)
+                put_image_from_url(large_url, "release/large/" + image_name)
                 return True
             except Exception as e:
-                app.logger.error("Put artist image failed: {}".format(e))
+                app.logger.error("Put release image failed: {}".format(e))
                 return False
 
     return False

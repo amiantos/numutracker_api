@@ -14,7 +14,7 @@ def scan_artist_art(limit=100):
             Artist.date_art_check < date_offset,
             Artist.date_art_check.is_(None)
         )
-    ).order_by(Artist.date_art_check.desc()).limit(limit).all()
+    ).order_by(Artist.date_art_check.asc().nullsfirst()).limit(limit).all()
 
     for artist in artists:
         numu_app.logger.info(
@@ -36,7 +36,7 @@ def scan_release_art(limit=100):
             Release.date_art_check < date_offset,
             Release.date_art_check.is_(None)
         )
-    ).order_by(Release.date_art_check.desc()).limit(limit).all()
+    ).order_by(Release.date_art_check.asc().nullsfirst()).limit(limit).all()
 
     for release in releases:
         numu_app.logger.info(

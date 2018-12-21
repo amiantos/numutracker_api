@@ -4,11 +4,20 @@ from models import Artist
 from datetime import datetime, timedelta
 from sqlalchemy import or_
 import time
+import simpleflock
 #from processing import scan_artist_art, scan_release_art
 
 
 @numu_app.cli.command()
 def mb_processing():
+    try:
+        with simpleflock.SimpleFlock("mb-processing.lock", timeout=1):
+            run_command()
+    except BlockingIOError:
+        numu_app.logger.error("Unable to achieve lock.")
+
+
+def run_command():
     """This command handles the periodic querying of MusicBrainz for new data."""
     date_offset = datetime.now() - timedelta(days=14)
     limit = 200

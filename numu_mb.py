@@ -295,6 +295,10 @@ def get_numu_date(mb_release_date):
     month = flat_date[4:6] or '01'
     day = flat_date[6:8] or '01'
 
+    if month == '??' or day == '00':
+        month = '01'
+    if day == '??' or day == '00':
+        day = '01'
     if year == '0000' or year == '????':
         return None
 

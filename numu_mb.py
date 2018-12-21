@@ -80,7 +80,7 @@ def create_or_update_numu_release(mb_release):
     release.type = get_numu_type(mb_release)
     release.date_release = numu_date
     artist_names = mb_release.get('artist-credit-phrase')
-    if len(artist_names) > 40:
+    if len(artist_names) > 40 and len(mb_release.get('artist-credit')) > 2:
         artist_names = "Various Artists"
     release.artist_names = artist_names
     release.date_updated = func.now()

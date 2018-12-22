@@ -236,6 +236,7 @@ def create_or_update_user_artist(user_id, artist, import_method):
     user_artist.disambiguation = artist.disambiguation
     user_artist.art = artist.art
     user_artist.date_updated = artist.date_updated
+    user_artist.date_checked = func.now()
     user_artist.apple_music_link = artist.apple_music_link
     user_artist.spotify_link = artist.spotify_link
 

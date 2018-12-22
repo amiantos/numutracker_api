@@ -4,7 +4,7 @@ from numu import auth, app as numu_app
 import lastfm
 import response
 import repo
-from utils import import_artists
+from processing import import_artists, scan_imported_artists
 
 from . import app
 
@@ -56,9 +56,8 @@ def import_artists_endpoint():
         return response.error("Missing import_method")
 
     result = import_artists(user, artists, import_method)
-
-    # TODO: Implement quick scan of imported artists db
-    # utils.quick_import(user.id)
+    if result > 0:
+        scan_imported_artists(False, user.id)
 
     return response.success({'artists_imported': result})
 
@@ -91,8 +90,7 @@ def import_lastfm_artists():
         limit = 500
 
     result = lastfm.download_artists(user, username, limit, period)
-
-    # TODO: Implement quick scan of artists DB
-    # utils.quick_import(user.id)
+    if result > 0:
+        scan_imported_artists(False, user.id)
 
     return response.success({'artists_imported': result})

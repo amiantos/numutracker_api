@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import or_
 import time
 import simpleflock
-#from processing import scan_artist_art, scan_release_art
+from processing import scan_imported_artists
 
 
 @numu_app.cli.command()
@@ -23,6 +23,9 @@ def run_command():
     limit = 200
     numu_app.logger.info("Starting MB process...")
     start = time.time()
+
+    # Scan user imports
+    scan_imported_artists(True)
 
     # Scan artists
     artists = Artist.query.filter(

@@ -105,9 +105,13 @@ class UserArtist(db.Model):
     name = Column(String(512), nullable=False)
     sort_name = Column(String(512), nullable=False)
     disambiguation = Column(String(512), nullable=False)
-    art = Column(String(100), nullable=True, default=None)
+    art = Column(Boolean(), nullable=False, default=False, server_default=expression.false())
 
+    date_checked = Column(DateTime(True), nullable=True, default=None)
     date_updated = Column(DateTime(True), nullable=True, default=None)
+
+    apple_music_link = Column(String(), nullable=True)
+    spotify_link = Column(String(), nullable=True)
 
     date_followed = Column(DateTime(True), nullable=False, default=func.now())
     follow_method = Column(String())
@@ -166,17 +170,20 @@ class UserRelease(db.Model):
     title = Column(String(512), nullable=False)
     artist_names = Column(String(512), nullable=False)
     type = Column(String(36), index=True)
-    art = Column(String(100), nullable=True, default=None)
+    art = Column(Boolean(), nullable=False, default=False, server_default=expression.false())
+
+    date_release = Column(Date(), nullable=False, index=True)
+    date_added = Column(DateTime(True), nullable=False, default=func.now())
+    date_updated = Column(DateTime(True), nullable=False, default=func.now())
+    date_checked = Column(DateTime(True), nullable=True, default=func.now())
 
     apple_music_link = Column(String(), nullable=True, default=None)
     spotify_link = Column(String(), nullable=True, default=None)
 
-    date_release = Column(Date(), nullable=False, index=True, default=None)
-    date_updated = Column(DateTime(True), nullable=False, default=func.now())
-    date_added = Column(DateTime(True), nullable=False, default=func.now())
-
     listened = Column(Boolean(), default=False)
     date_listened = Column(DateTime(True), nullable=True, default=None)
+
+    release = relationship("Release", lazy=True, uselist=False)
 
     def __repr__(self):
         return '<UserRelease {} - {}>'.format(

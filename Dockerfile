@@ -8,8 +8,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libssl-dev \
     libffi-dev \
-    python3-setuptools \
-    cron
+    python3-setuptools
 
 COPY requirements.txt /tmp/requirements.txt
 RUN pip3 install -r /tmp/requirements.txt
@@ -23,10 +22,6 @@ ENV FLASK_ENV development
 ENV FLASK_APP numu.py
 
 EXPOSE 80
-
-ADD crontab /etc/crontab
-RUN chmod 0644 /etc/crontab
-RUN touch /var/log/cron.log
 
 WORKDIR /opt/app
 

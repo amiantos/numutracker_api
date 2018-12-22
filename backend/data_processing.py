@@ -1,11 +1,10 @@
-"""The bridge between Numu and Musicbrainz."""
-
-import musicbrainz as mb
-from models import Artist, Release, UserArtist, UserRelease
-import repo
 from sqlalchemy.sql import func
-from numu import db, app as numu_app
 
+from backend import repo
+from backend import musicbrainz as mb
+from backend.models import Artist, Release, UserArtist, UserRelease
+from numu import app as numu_app
+from numu import db
 
 # ------------------------------------------------------------------------
 # Add / Update Core Data
@@ -89,7 +88,8 @@ def create_or_update_numu_release(mb_release):
         if type(mb_artist) == dict and mb_artist['artist']:
             artist = repo.get_numu_artist_by_mbid(mb_artist['artist']['id'])
             if artist is None:
-                artist = add_numu_artist_from_mb(artist_mbid=mb_artist['artist']['id'])
+                artist = add_numu_artist_from_mb(
+                    artist_mbid=mb_artist['artist']['id'])
             if artist and artist not in release.artists:
                 release.artists.append(artist)
 
@@ -129,21 +129,20 @@ def update_numu_artist_from_mb(artist):
     if status == 200 and mb_artist['id'] != artist.mbid:
         # Artist has been merged
         new_mbid = mb_artist['id']
-        numu_app.logger.info("Artist Merged: {}, New MBID: {}".format(artist, new_mbid))
+        numu_app.logger.info(
+            "Artist Merged: {}, New MBID: {}".format(artist, new_mbid))
         new_artist = repo.get_numu_artist_by_mbid(new_mbid)
         if not new_artist:
             new_artist = add_numu_artist_from_mb(artist_mbid=new_mbid)
             add_numu_releases_from_mb(new_artist)
-        user_artists = UserArtist.query.filter_by(mbid=new_mbid).all()
-        for user_artist in user_artists:
-            user_artist.mbid = new_artist.mbid
-            user_artist.date_updated = None
-            db.session.add(user_artist)
+        user_artists = UserArtist.query.filter_by(
+            mbid=new_mbid).update(
+                dict(mbid=new_artist.mbid, date_updated=None))
         db.session.commit()
         delete_numu_artist(artist)
         changed = True
         artist = new_artist
-    
+
     if status == 200:
         if artist.name != mb_artist['name']:
             artist.name = mb_artist['name']

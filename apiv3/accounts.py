@@ -1,10 +1,9 @@
 from flask import request, g
 
 from numu import auth, app as numu_app
-import lastfm
+from backend import import_processing
 import response
-import repo
-from processing import import_artists, scan_imported_artists
+from backend import repo
 
 from . import app
 
@@ -35,7 +34,12 @@ def new_user():
 @app.route('/user')
 @auth.login_required
 def get_user():
-    return response.success({'user': {'email': g.user.email, 'icloud': g.user.icloud}})
+    return response.success({
+        'user': {
+            'email': g.user.email,
+            'icloud': g.user.icloud
+        }
+    })
 
 
 @app.route('/user/import', methods=['POST'])
@@ -55,9 +59,9 @@ def import_artists_endpoint():
     if not import_method:
         return response.error("Missing import_method")
 
-    result = import_artists(user, artists, import_method)
+    result = import_processing.import_artists(user, artists, import_method)
     if result > 0:
-        scan_imported_artists(False, user.id)
+        import_processing.scan_imported_artists(False, user.id)
 
     return response.success({'artists_imported': result})
 
@@ -89,6 +93,6 @@ def import_lastfm_artists():
     if limit is None or limit > 500:
         limit = 500
 
-    result = lastfm.download_artists(user, username, limit, period)
+    result = import_processing.import_from_lastfm(user, username, limit, period)
 
     return response.success({'artists_imported': result})

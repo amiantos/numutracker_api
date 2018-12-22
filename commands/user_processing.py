@@ -1,5 +1,5 @@
 from numu import app as numu_app
-from processing import scan_imported_artists
+from backend.import_processing import scan_imported_artists
 import simpleflock
 
 

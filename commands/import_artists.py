@@ -1,11 +1,9 @@
-from utils import grab_json
-
-from numu import app
-from numu import db
-from models import Artist, ArtistAka
+from backend.models import Artist, ArtistAka
+from numu import app as numu_app, db
+from backend.utils import grab_json
 
 
-@app.cli.command()
+@numu_app.cli.command()
 def import_artists():
     """Import artist information from API V2."""
     limit = 200
@@ -16,8 +14,9 @@ def import_artists():
     print("Importing artists from V2")
 
     while processing is True:
-        uri = "https://numutracker.com/v2/json.php?all_artists&key={}&limit={}&offset={}".format(
-            app.config.get('NUMU_V2_API_KEY'), limit, offset)
+        uri = "https://numutracker.com/v2/json.php?all_artists"
+        + "&key={}&limit={}&offset={}".format(
+            numu_app.config.get('NUMU_V2_API_KEY'), limit, offset)
         data = grab_json(uri)
         if not data:
             processing = False
@@ -44,12 +43,13 @@ def import_artists():
 
     data = grab_json(
         "https://numutracker.com/v2/json.php?all_artist_aka&key={}".format(
-            app.config.get('NUMU_V2_API_KEY')))
+            numu_app.config.get('NUMU_V2_API_KEY')))
 
     for aka in data:
         found_artist = Artist.query.filter_by(mbid=aka['mbid']).first()
         if found_artist is not None:
-            found_aka = ArtistAka.query.filter_by(artist_mbid=aka['mbid'], name=aka['aka_name']).first()
+            found_aka = ArtistAka.query.filter_by(
+                artist_mbid=aka['mbid'], name=aka['aka_name']).first()
             if found_aka is None:
                 print("ADDED AKA: {} - AKA: {}".format(
                     found_artist.name, aka['aka_name']))

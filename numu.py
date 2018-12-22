@@ -10,15 +10,15 @@ from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
+auth = HTTPBasicAuth()
 
 app.config.from_object("config.Config")
 
 db = SQLAlchemy(app)
 
-import models
+import backend.models
 migrate = Migrate(app, db)
 
-auth = HTTPBasicAuth()
 
 
 @app.before_first_request
@@ -33,7 +33,7 @@ def setup_logging():
         app.logger.setLevel(logging.INFO)
 
 
-import repo
+from backend import repo
 
 
 @auth.verify_password
@@ -64,7 +64,7 @@ def unauthorized():
 
 
 @app.route('/')
-def hello_world():
+def index():
     return 'Numu Tracker API - {}'.format(app.config['ENVIROMENT'])
 
 

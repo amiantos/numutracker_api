@@ -1,5 +1,5 @@
 from numu import bcrypt, db
-from models import User, Artist, Release, ArtistAka
+from backend.models import User, Artist, Release, ArtistAka
 from sqlalchemy.orm import joinedload
 
 

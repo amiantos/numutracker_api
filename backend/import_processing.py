@@ -1,64 +1,49 @@
-"""Methods for processing content"""
+"""Import artist data from other services or apps."""
 from datetime import datetime, timedelta
 
 from sqlalchemy import or_
 from sqlalchemy.sql import func
 
-import numu_mb
-import repo
-from lastfm import get_artist_art, get_release_art
-from models import Artist, ArtistImport, Release, UserArtist, UserRelease
+from backend import data_processing, repo
+from backend.models import ArtistImport
+from backend.utils import grab_json
 from numu import app as numu_app
 from numu import db
 
 
-def scan_artist_art(limit=100):
-    date_offset = datetime.now() - timedelta(days=14)
-    artists = Artist.query.filter(
-        Artist.art.is_(False),
-        or_(
-            Artist.date_art_check < date_offset,
-            Artist.date_art_check.is_(None)
-        )
-    ).order_by(Artist.date_art_check.asc().nullsfirst()).limit(limit).all()
+def import_from_lastfm(user, username, limit=500, period='overall', page=1):
+    """Download artists from a LastFM account into the user's library.
 
-    for artist in artists:
-        numu_app.logger.info(
-            "Checking art for artist {}, last check: {}".format(
-                artist.name, artist.date_art_check))
-        art_success = get_artist_art(artist)
-        if art_success:
-            artist.art = True
-            # Update all user artists
-            UserArtist.query.filter_by(mbid=artist.mbid).update(dict(art=True))
+    Period options: overall | 7day | 1month | 3month | 6month | 12month"""
 
-        artist.date_art_check = datetime.now()
-        db.session.add(artist)
+    data = grab_json(
+        "http://ws.audioscrobbler.com/2.0/?method=user.gettopartists"
+        + "&user={}&limit={}&api_key={}&period={}&page={}&format=json".format(
+            username,
+            limit,
+            numu_app.config.get('LAST_FM_API_KEY'),
+            period,
+            page))
+
+    artists_added = 0
+
+    for artist in data.get('topartists').get('artist'):
+        found_import = ArtistImport.query.filter_by(
+            user_id=user.id,
+            import_name=artist['name']).first()
+        if found_import is None:
+            new_import = ArtistImport(
+                user_id=user.id,
+                import_name=artist['name'],
+                import_mbid=artist['mbid'],
+                import_method='lastfm')
+            db.session.add(new_import)
+            artists_added += 1
+
+    if artists_added > 0:
         db.session.commit()
 
-
-def scan_release_art(limit=100):
-    date_offset = datetime.now() - timedelta(days=14)
-    releases = Release.query.filter(
-        Release.art.is_(False),
-        or_(
-            Release.date_art_check < date_offset,
-            Release.date_art_check.is_(None)
-        )
-    ).order_by(Release.date_art_check.asc().nullsfirst()).limit(limit).all()
-
-    for release in releases:
-        numu_app.logger.info(
-            "Checking art for release {} - {}, last check: {}".format(
-                release.artist_names, release.title, release.date_art_check))
-        art_success = get_release_art(release)
-        if art_success:
-            release.art = True
-            # Update all user releases
-            UserRelease.query.filter_by(mbid=release.mbid).update(dict(art=True))
-        release.date_art_check = datetime.now()
-        db.session.add(release)
-        db.session.commit()
+    return artists_added
 
 
 def scan_imported_artists(check_musicbrainz=True, user_id=None):
@@ -89,8 +74,8 @@ def scan_imported_artists(check_musicbrainz=True, user_id=None):
             artist_import.user_id,
             artist_import.import_name))
 
-        if artist_import.import_method == 'V2':
-            numu_app.logger.info("Searching by MBID (import from V2)")
+        if found_artist is None:
+            numu_app.logger.info("Searching by MBID")
             found_artist = repo.get_numu_artist_by_mbid(
                 artist_import.import_mbid)
 
@@ -101,22 +86,22 @@ def scan_imported_artists(check_musicbrainz=True, user_id=None):
 
         if found_artist is None and check_musicbrainz:
             numu_app.logger.info("Searching MusicBrainz...")
-            found_artist = numu_mb.add_numu_artist_from_mb(
+            found_artist = data_processing.add_numu_artist_from_mb(
                 artist_name=artist_import.import_name,
                 artist_mbid=artist_import.import_mbid
             )
             # Add releases
             if found_artist:
-                numu_mb.add_numu_releases_from_mb(found_artist)
+                data_processing.add_numu_releases_from_mb(found_artist)
 
         if found_artist is not None:
             numu_app.logger.info("Found artist!")
             artist_import.found_mbid = found_artist.mbid
-            user_artist = numu_mb.create_or_update_user_artist(
+            user_artist = data_processing.create_or_update_user_artist(
                 artist_import.user_id,
                 found_artist,
                 artist_import.import_method)
-            numu_mb.create_or_update_user_releases(user_artist, False)
+            data_processing.create_or_update_user_releases(user_artist, False)
         else:
             numu_app.logger.info("Did not find artist.")
             if check_musicbrainz:

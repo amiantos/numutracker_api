@@ -1,11 +1,13 @@
-from numu import app as numu_app
-from numu_mb import update_numu_artist_from_mb
-from models import Artist
-from datetime import datetime, timedelta
-from sqlalchemy import or_
 import time
+from datetime import datetime, timedelta
+
+from sqlalchemy import or_
+
 import simpleflock
-from processing import scan_imported_artists
+from backend.import_processing import scan_imported_artists
+from backend.models import Artist
+from numu import app as numu_app
+from backend.data_processing import update_numu_artist_from_mb
 
 
 @numu_app.cli.command()
@@ -18,7 +20,6 @@ def mb_processing():
 
 
 def run_command():
-    """This command handles the periodic querying of MusicBrainz for new data."""
     date_offset = datetime.now() - timedelta(days=14)
     limit = 200
     numu_app.logger.info("Starting MB process...")
@@ -48,4 +49,5 @@ def run_command():
     # Scan releases
 
     end = time.time()
-    numu_app.logger.info("MB Process completed, time: {} minutes".format((end - start)/60))
+    numu_app.logger.info(
+        "MB Process completed, time: {} minutes".format((end - start)/60))

@@ -1,6 +1,7 @@
 from numu import app as numu_app
-from processing import scan_artist_art, scan_release_art
+from backend.image_processing import scan_artist_art, scan_release_art
 import simpleflock
+
 
 @numu_app.cli.command()
 def check_art():

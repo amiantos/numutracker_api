@@ -1,5 +1,5 @@
 from sqlalchemy import (Binary, Boolean, Column, Date, DateTime,
-                        ForeignKey, Integer, String, Index)
+                        ForeignKey, Integer, String, Index, Text)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func, expression
 
@@ -124,8 +124,8 @@ class UserArtist(db.Model):
 
 class Release(db.Model):
     mbid = Column(String(36), primary_key=True)
-    title = Column(String(512), nullable=False)
-    artist_names = Column(String(512), nullable=False)
+    title = Column(Text, nullable=False)
+    artist_names = Column(Text, nullable=False)
     type = Column(String(36), index=True)
     art = Column(Boolean(), nullable=False, default=False, server_default=expression.false())
 
@@ -167,8 +167,8 @@ class UserRelease(db.Model):
             deferrable=True,
             initially="DEFERRED"),
         primary_key=True)
-    title = Column(String(512), nullable=False)
-    artist_names = Column(String(512), nullable=False)
+    title = Column(Text, nullable=False)
+    artist_names = Column(Text, nullable=False)
     type = Column(String(36), index=True)
     art = Column(Boolean(), nullable=False, default=False, server_default=expression.false())
 

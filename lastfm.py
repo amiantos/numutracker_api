@@ -72,7 +72,7 @@ def get_release_art(release):
                 put_image_from_url(full_url, "release/full/" + image_name)
                 put_image_from_url(large_url, "release/large/" + image_name)
                 return True
-            except Exception as e:
+            except IOError as e:
                 app.logger.error("Put release image failed: {}".format(e))
                 return False
 

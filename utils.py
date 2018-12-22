@@ -2,6 +2,8 @@ import requests
 import json
 from numu import app
 import boto3
+from PIL import Image
+from io import BytesIO
 
 session = boto3.session.Session()
 client = session.client(
@@ -22,10 +24,30 @@ def grab_json(uri):
 
 
 def put_image_from_url(url, name):
-    with requests.get(url, stream=True) as r:
-        # TODO: Ensure that received content is actually an image, raise if not
+
+    response = requests.get(url, stream=True)
+    if response.status_code != 200:
+        app.logger.error("Image at {} response code {}".format(url, response.status_code))
+        raise IOError("Unable to retrieve image file.")
+
+    try:
+        image = Image.open(response.raw)
+    except TypeError as err:
+        app.logger.error(
+            "Import of {} unsuccessful. Error message:".format(url, err))
+        raise IOError("Unable to process image file.")
+
+    app.logger.info("File size: {}".format(image.size))
+
+    with BytesIO() as output:
+        try:
+            image.save(output, 'png')
+        except IOError:
+            app.logger.error("Save of {} failed, Error message:".format(url, err))
+
+        output.seek(0)
         client.upload_fileobj(
-            r.raw,
+            output,
             'numu',
             name
         )

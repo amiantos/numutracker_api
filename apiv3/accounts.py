@@ -90,7 +90,5 @@ def import_lastfm_artists():
         limit = 500
 
     result = lastfm.download_artists(user, username, limit, period)
-    if result > 0:
-        scan_imported_artists(False, user.id)
 
     return response.success({'artists_imported': result})

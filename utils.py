@@ -23,6 +23,7 @@ def grab_json(uri):
 
 def put_image_from_url(url, name):
     with requests.get(url, stream=True) as r:
+        # TODO: Ensure that received content is actually an image, raise if not
         client.upload_fileobj(
             r.raw,
             'numu',

@@ -75,7 +75,7 @@ def scan_imported_artists(check_musicbrainz=True, user_id=None):
                 ArtistImport.date_checked.is_(None))
         ).order_by(
             ArtistImport.date_checked.asc().nullsfirst(),
-            ArtistImport.date_added.asc()
+            ArtistImport.date_added.desc()
         ).limit(limit).all()
 
     for artist_import in artist_imports:

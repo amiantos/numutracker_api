@@ -1,4 +1,5 @@
 from flask import g, jsonify, request
+from datetime import date
 
 import response
 from backend import repo, serializer
@@ -16,7 +17,9 @@ def user_releases_unlistened(page):
     page = page if page else 1
     pages = UserRelease.query.filter(
         UserRelease.user_id == g.user.id,
-        UserRelease.type.in_(('Album', 'EP'))
+        UserRelease.type.in_(('Album', 'EP')),
+        UserRelease.listened.is_(False),
+        UserRelease.date_release <= date.today().isoformat()
     ).options(
         joinedload('release')
     ).order_by(UserRelease.date_release.desc()).paginate(

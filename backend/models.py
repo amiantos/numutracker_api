@@ -105,7 +105,8 @@ class ArtistRelease(db.Model):
             ondelete="CASCADE",
             deferrable=True,
             initially="DEFERRED"),
-        primary_key=True)
+        primary_key=True,
+        index=True)
     release_mbid = Column(
         String(36),
         ForeignKey(
@@ -114,7 +115,8 @@ class ArtistRelease(db.Model):
             ondelete="CASCADE",
             deferrable=True,
             initially="DEFERRED"),
-        primary_key=True)
+        primary_key=True,
+        index=True)
 
 
 class Release(db.Model):
@@ -186,7 +188,18 @@ class UserRelease(db.Model):
             self.mbid)
 
 
-Index('user_releases', UserRelease.user_id, UserRelease.type, UserRelease.date_release.desc())
+Index(
+    'user_releases_listened',
+    UserRelease.user_id,
+    UserRelease.type,
+    UserRelease.listened,
+    UserRelease.date_release.desc())
+
+Index(
+    'user_releases',
+    UserRelease.user_id,
+    UserRelease.type,
+    UserRelease.date_release.desc())
 
 
 class ArtistImport(db.Model):

@@ -18,7 +18,7 @@ def user_releases_unlistened(page):
         UserRelease.user_id == g.user.id,
         UserRelease.type.in_(('Album', 'EP'))
     ).options(
-        joinedload('release.artists')
+        joinedload('release')
     ).order_by(UserRelease.date_release.desc()).paginate(
         page=page,
         per_page=100,

@@ -28,32 +28,6 @@ class User(db.Model):
     def __repr__(self):
         return '<User {}>'.format(self.id)
 
-
-artist_release = db.Table(
-    'artist_release',
-    Column(
-        'artist_mbid',
-        String(36),
-        ForeignKey(
-            'artist.mbid',
-            onupdate="CASCADE",
-            ondelete="CASCADE",
-            deferrable=True,
-            initially="DEFERRED"),
-        primary_key=True),
-    Column(
-        'release_mbid',
-        String(36),
-        ForeignKey(
-            'release.mbid',
-            onupdate="CASCADE",
-            ondelete="CASCADE",
-            deferrable=True,
-            initially="DEFERRED"),
-        primary_key=True)
-)
-
-
 class Artist(db.Model):
     mbid = Column(String(36), primary_key=True)
     name = Column(String(512), nullable=False)
@@ -122,6 +96,27 @@ class UserArtist(db.Model):
         return '<UserArtist {} - {}>'.format(self.user_id, self.mbid)
 
 
+class ArtistRelease(db.Model):
+    artist_mbid = Column(
+        String(36),
+        ForeignKey(
+            'artist.mbid',
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED"),
+        primary_key=True)
+    release_mbid = Column(
+        String(36),
+        ForeignKey(
+            'release.mbid',
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED"),
+        primary_key=True)
+
+
 class Release(db.Model):
     mbid = Column(String(36), primary_key=True)
     title = Column(Text, nullable=False)
@@ -138,7 +133,7 @@ class Release(db.Model):
     apple_music_link = Column(String(), nullable=True, default=None)
     spotify_link = Column(String(), nullable=True, default=None)
 
-    artists = db.relationship("Artist", secondary=artist_release, lazy=False)
+    artists = db.relationship("Artist", secondary="artist_release", lazy=False)
 
     def __repr__(self):
         return '<Release {} - {} - {}>'.format(
@@ -183,7 +178,7 @@ class UserRelease(db.Model):
     listened = Column(Boolean(), default=False)
     date_listened = Column(DateTime(True), nullable=True, default=None)
 
-    release = relationship("Release", lazy=True, uselist=False)
+    release = relationship("Release", lazy=False)
 
     def __repr__(self):
         return '<UserRelease {} - {}>'.format(

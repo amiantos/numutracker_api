@@ -52,3 +52,4 @@ def artist(artist):
         'art': get_art_urls(artist),
         'date_updated': artist.date_updated,
     }
+    

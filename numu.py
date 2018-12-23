@@ -68,7 +68,7 @@ def index():
     return 'Numu Tracker API - {}'.format(app.config['ENVIROMENT'])
 
 
-from apiv3 import app as api_v3
+from rest import app as api_v3
 app.register_blueprint(api_v3, url_prefix='/v3')
 
 

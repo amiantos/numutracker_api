@@ -1,5 +1,5 @@
 from numu import bcrypt, db
-from backend.models import User, Artist, Release, ArtistAka
+from backend.models import User, Artist, Release, ArtistAka, UserRelease
 from sqlalchemy.orm import joinedload
 
 
@@ -35,6 +35,12 @@ def get_user_by_icloud(icloud):
         return user
     return None
 
+# --------------------------------------
+# User Data
+# --------------------------------------
+
+def get_user_releases_unlistened(user_id):
+    pass
 
 # --------------------------------------
 # Basic Fetch

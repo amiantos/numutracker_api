@@ -10,6 +10,10 @@ from sqlalchemy.orm import joinedload
 
 from . import app
 
+@app.route('/user/releases/unlistened', methods=['GET'])
+@auth.login_required
+def user_releases_unlistened_no_page():
+    return user_releases_unlistened(1)
 
 @app.route('/user/releases/unlistened/<int:page>', methods=['GET'])
 @auth.login_required
@@ -24,10 +28,9 @@ def user_releases_unlistened(page):
         joinedload('release')
     ).order_by(UserRelease.date_release.desc()).paginate(
         page=page,
-        per_page=100,
+        per_page=50,
         error_out=False
     )
-    user_releases = pages.items
     return response.success(
         {
             'page': page,
@@ -35,7 +38,8 @@ def user_releases_unlistened(page):
             'total_pages': pages.pages,
             'next_page': pages.next_num,
             'prev_page': pages.prev_num,
-            'items': serializer.user_releases(user_releases)})
+            'items': serializer.user_releases(pages.items)})
+
 
 @app.route('/user/releases/all', methods=['GET'])
 @auth.login_required

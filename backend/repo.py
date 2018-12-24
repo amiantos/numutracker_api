@@ -53,12 +53,12 @@ def get_numu_artist_by_mbid(mbid):
 
 def get_numu_artist_by_name(name):
     aka = ArtistAka.query.filter(
-        ArtistAka.name.ilike("{}".format(name))).first()
+        ArtistAka.name.ilike(name)).first()
     if aka:
         artist = Artist.query.filter_by(mbid=aka.artist_mbid).first()
     else:
         artist = Artist.query.filter(
-            Artist.name.ilike("{}".format(name))).first()
+            Artist.name.ilike(name)).first()
     return artist
 
 

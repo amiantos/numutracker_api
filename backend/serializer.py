@@ -2,6 +2,11 @@
 from backend.models import Artist, Release, UserRelease
 
 
+def serializer(object, type):
+    if type == 'user_release':
+        return user_releases(object)
+
+
 def get_art_urls(object):
     """Creates URLs for artist or release art."""
     if object.art is False:
@@ -20,26 +25,23 @@ def get_art_urls(object):
         }
 
 
-def user_releases(user_releases):
-    serialized = []
-    for release in user_releases:
-        r = {
-            'mbid': release.mbid,
-            'title': release.title,
-            'artist_names': release.artist_names,
-            'type': release.type,
-            'art': get_art_urls(release),
-            'date_release': release.date_release,
-            'date_updated': release.date_updated,
-            'links': {
-                'apple_music': release.apple_music_link,
-                'spotify': release.spotify_link,
-            },
-            'listened': release.listened,
-            'date_listened': release.date_listened,
-            'artists': [artist(x) for x in release.release.artists]
-        }
-        serialized.append(r)
+def user_releases(user_release):
+    serialized = {
+        'mbid': user_release.mbid,
+        'title': user_release.title,
+        'artist_names': user_release.artist_names,
+        'type': user_release.type,
+        'art': get_art_urls(user_release),
+        'date_release': user_release.date_release,
+        'date_updated': user_release.date_updated,
+        'links': {
+            'apple_music': user_release.apple_music_link,
+            'spotify': user_release.spotify_link,
+        },
+        'listened': user_release.listened,
+        'date_listened': user_release.date_listened,
+        'artists': [artist(x) for x in user_release.release.artists]
+    }
     return serialized
 
 
@@ -52,4 +54,3 @@ def artist(artist):
         'art': get_art_urls(artist),
         'date_updated': artist.date_updated,
     }
-    

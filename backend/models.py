@@ -25,8 +25,28 @@ class User(db.Model):
     artists = relationship("Artist", secondary="user_artist", lazy=True)
     releases = relationship("Release", secondary="user_release", lazy=True)
 
+    @property
+    def filters(self):
+        filters = []
+        if self.album:
+            filters.append('Album')
+        if self.single:
+            filters.append('Single')
+        if self.ep:
+            filters.append('EP')
+        if self.live:
+            filters.append('Live')
+        if self.soundtrack:
+            filters.append('Soundtrack')
+        if self.remix:
+            filters.append('Remix')
+        if self.other:
+            filters.append('Other')
+        return filters
+
     def __repr__(self):
         return '<User {}>'.format(self.id)
+
 
 class Artist(db.Model):
     mbid = Column(String(36), primary_key=True)

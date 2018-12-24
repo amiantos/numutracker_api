@@ -78,7 +78,7 @@ def user_releases_upcoming(page):
         UserRelease.user_id == g.user.id,
         UserRelease.type.in_(g.user.filters),
         UserRelease.date_release > date.today()
-    ).order_by(UserRelease.date_release.desc())
+    ).order_by(UserRelease.date_release.asc())
     data = paginate_query(query, page)
     return response.success(data)
 

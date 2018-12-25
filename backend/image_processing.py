@@ -50,9 +50,9 @@ def put_image_from_url(url, name):
         client.upload_fileobj(
             output,
             'numu',
-            name
+            name,
+            ExtraArgs={'ACL': 'public-read', 'ContentType': 'image/png'}
         )
-        client.put_object_acl(ACL='public-read', Bucket='numu', Key=name)
 
 
 def get_artist_art(artist):

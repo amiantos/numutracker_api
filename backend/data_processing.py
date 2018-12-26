@@ -203,11 +203,6 @@ def update_numu_release_from_mb(release):
 def update_user_artist(user_artist, new_artist):
     user_artist.name = new_artist.name
     user_artist.sort_name = new_artist.sort_name
-    user_artist.disambiguation = new_artist.disambiguation
-    user_artist.art = new_artist.art
-    user_artist.date_updated = new_artist.date_updated
-    user_artist.apple_music_link = new_artist.apple_music_link
-    user_artist.spotify_link = new_artist.spotify_link
 
     db.session.add(user_artist)
     db.session.commit()
@@ -229,12 +224,7 @@ def create_or_update_user_artist(user_id, artist, import_method):
         )
     user_artist.name = artist.name
     user_artist.sort_name = artist.sort_name
-    user_artist.disambiguation = artist.disambiguation
-    user_artist.art = artist.art
-    user_artist.date_updated = artist.date_updated
-    user_artist.date_checked = func.now()
-    user_artist.apple_music_link = artist.apple_music_link
-    user_artist.spotify_link = artist.spotify_link
+    user_artist.date_updated = func.now()
 
     db.session.add(user_artist)
     db.session.commit()

@@ -98,19 +98,14 @@ class UserArtist(db.Model):
         primary_key=True)
     name = Column(String(512), nullable=False)
     sort_name = Column(String(512), nullable=False)
-    disambiguation = Column(String(512), nullable=False)
-    art = Column(Boolean(), nullable=False, default=False, server_default=expression.false())
-
-    date_checked = Column(DateTime(True), nullable=True, default=None)
-    date_updated = Column(DateTime(True), nullable=True, default=None)
-
-    apple_music_link = Column(String(), nullable=True)
-    spotify_link = Column(String(), nullable=True)
 
     date_followed = Column(DateTime(True), nullable=False, default=func.now())
     follow_method = Column(String())
     following = Column(Boolean(), default=True, index=True)
+    date_updated = Column(DateTime(True), nullable=True, default=None)
+
     user = relationship("User", lazy=True, uselist=False)
+    artist = relationship("Artist", lazy=False)
 
     def __repr__(self):
         return '<UserArtist {} - {}>'.format(self.user_id, self.mbid)

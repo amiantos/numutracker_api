@@ -127,8 +127,6 @@ def scan_artist_art(limit=100):
         art_success = get_artist_art(artist)
         if art_success:
             artist.art = True
-            # Update all user artists
-            UserArtist.query.filter_by(mbid=artist.mbid).update(dict(art=True))
 
         artist.date_art_check = datetime.now()
         db.session.add(artist)
@@ -152,6 +150,10 @@ def scan_release_art(limit=100):
         art_success = get_release_art(release)
         if art_success:
             release.art = True
+            # Update all user releases
+            UserRelease.query.filter_by(
+                mbid=release.mbid).update(
+                    dict(art=True))
         release.date_art_check = datetime.now()
         db.session.add(release)
         db.session.commit()

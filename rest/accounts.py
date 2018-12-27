@@ -1,10 +1,10 @@
-from flask import request, g
+from flask import g, request
 
-from numu import auth, app as numu_app, db
-from backend import import_processing
 import response
-from backend import repo
+from backend import data_processing, import_processing, repo, musicbrainz
 from backend.utils import grab_json
+from numu import app as numu_app
+from numu import auth, db
 
 from . import app
 
@@ -137,17 +137,30 @@ def import_numu_v2():
         if imported > 0:
             result['artists_imported'] = imported
 
-    releases = data.get('listens')
-    if releases:
-        for release in releases:
+    listens = data.get('listens')
+    if listens:
+        releases_added = 0
+        for listen in listens:
+            release_mbid = listen.get('mbid')
             # Check for release in Numu
+            release = repo.get_numu_release(release_mbid)
 
             # If releases doesn't exist, find in MB
-            # Then add to Numu
+            if release is None:
+                mb_release = musicbrainz.get_release(release_mbid)
+                if mb_release and mb_release.get('status') == 200:
+                    release = data_processing.create_or_update_numu_release(mb_release['release'])
 
-            # Add user release
+            if release:
+                # Add user release
+                user_release, notify = data_processing.create_or_update_user_release(user.id, release, 'v2')
 
-            # Update listen status
-
+                # Update listen status
+                user_release.listened = True
+                user_release.date_listened = listen.get('listen_date')
+                db.session.add(user_release)
+                db.session.commit()
+                releases_added += 1
+        result['releases_listened'] = releases_added
 
     return response.success(result)

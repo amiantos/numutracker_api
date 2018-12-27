@@ -141,3 +141,27 @@ def import_artists(user, artists, import_method):
         db.session.commit()
 
     return artists_added
+
+def import_artists_v2(user, artists):
+    artists_added = 0
+    for artist in artists:
+        found_import = ArtistImport.query.filter(
+            ArtistImport.user_id == user.id,
+            or_(
+                ArtistImport.import_name == artist['name'],
+                ArtistImport.import_mbid == artist['mbid']
+            )).first()
+        if found_import is None:
+            new_import = ArtistImport(
+                user_id=user.id,
+                import_name=artist['name'],
+                import_mbid=artist['mbid'],
+                import_method='V2')
+            db.session.add(new_import)
+            artists_added += 1
+
+    if artists_added > 0:
+        db.session.commit()
+
+    return artists_added
+

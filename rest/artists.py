@@ -11,6 +11,7 @@ from . import app
 
 PER_PAGE = 50
 
+
 def paginate_query(query, page):
     paginated = query.paginate(
         page=page,
@@ -25,6 +26,14 @@ def paginate_query(query, page):
         'prev_page': paginated.prev_num,
         'items': [serializer(item, 'user_artist') for item in paginated.items]
     }
+
+
+"""
+@app.route('/user/artist/<mbid>', methods=['GET'])
+@auth.login_required
+def user_artist_by_mbid():
+    return user_artists(1)
+"""
 
 
 @app.route('/user/artists', methods=['GET'])

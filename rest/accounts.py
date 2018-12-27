@@ -1,9 +1,10 @@
 from flask import request, g
 
-from numu import auth, app as numu_app
+from numu import auth, app as numu_app, db
 from backend import import_processing
 import response
 from backend import repo
+from backend.utils import grab_json
 
 from . import app
 
@@ -37,7 +38,8 @@ def get_user():
     return response.success({
         'user': {
             'email': g.user.email,
-            'icloud': g.user.icloud
+            'icloud': g.user.icloud,
+            'filters': g.user.filters,
         }
     })
 
@@ -60,8 +62,6 @@ def import_artists_endpoint():
         return response.error("Missing import_method")
 
     result = import_processing.import_artists(user, artists, import_method)
-    if result > 0:
-        import_processing.scan_imported_artists(False, user.id)
 
     return response.success({'artists_imported': result})
 
@@ -93,6 +93,61 @@ def import_lastfm_artists():
     if limit is None or limit > 500:
         limit = 500
 
-    result = import_processing.import_from_lastfm(user, username, limit, period)
+    result = import_processing.import_from_lastfm(
+        user, username, limit, period)
 
     return response.success({'artists_imported': result})
+
+
+@app.route('/user/import/v2', methods=['POST'])
+@auth.login_required
+def import_numu_v2():
+    """
+    Import data from Numu API v2
+    Imports:
+    - artists
+    - listening history
+    - filters
+    """
+    user = g.user
+    username = user.email if user.email else user.icloud
+
+    result = {}
+
+    data = grab_json(
+        "https://www.numutracker.com/v2/json2.php?importv2={}".format(username))
+
+    result['raw_data'] = data
+
+    filters = data.get('filters')
+    if filters:
+        user.album = bool(filters['album'])
+        user.ep = bool(filters['ep'])
+        user.single = bool(filters['single'])
+        user.live = bool(filters['live'])
+        user.soundtrack = bool(filters['soundtrack'])
+        user.remix = bool(filters['remix'])
+        user.other = bool(filters['other'])
+        db.session.add(user)
+        db.session.commit()
+
+    artists = data.get('artists')
+    if artists:
+        imported = import_processing.import_artists_v2(user, artists)
+        if imported > 0:
+            result['artists_imported'] = imported
+
+    releases = data.get('listens')
+    if releases:
+        for release in releases:
+            # Check for release in Numu
+
+            # If releases doesn't exist, find in MB
+            # Then add to Numu
+
+            # Add user release
+
+            # Update listen status
+
+
+    return response.success(result)

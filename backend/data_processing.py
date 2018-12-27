@@ -237,31 +237,40 @@ def create_or_update_user_releases(user_artist, notifications=True):
     releases = repo.get_numu_artist_releases(user_artist.mbid)
 
     for release in releases:
-        notify = False
-
-        user_release = UserRelease.query.filter_by(
-            user_id=user_artist.user_id, mbid=release.mbid).first()
-        if user_release is None:
-            user_release = UserRelease()
-            user_release.add_method = 'automatic'
-            user_release.user_id = user_artist.user_id
-            user_release.mbid = release.mbid
-            notify = True
-        user_release.title = release.title
-        user_release.artist_names = release.artist_names
-        user_release.type = release.type
-        user_release.date_release = release.date_release
-        user_release.art = release.art
-        user_release.apple_music_link = release.apple_music_link
-        user_release.spotify_link = release.spotify_link
-        user_release.date_updated = release.date_updated
-        db.session.add(user_release)
-        db.session.commit()
+        user_release, notify = create_or_update_user_release(
+            user_artist.user_id,
+            release,
+            'automatic'
+        )
 
         # TODO: Process Notifications
         if notify and notifications:
             """Create Notification"""
             pass
+
+
+def create_or_update_user_release(user_id, release, add_method):
+    notify = False
+    user_release = UserRelease.query.filter_by(
+            user_id=user_id, mbid=release.mbid).first()
+    if user_release is None:
+        user_release = UserRelease()
+        user_release.add_method = add_method
+        user_release.user_id = user_id
+        user_release.mbid = release.mbid
+        notify = True
+    user_release.title = release.title
+    user_release.artist_names = release.artist_names
+    user_release.type = release.type
+    user_release.date_release = release.date_release
+    user_release.art = release.art
+    user_release.apple_music_link = release.apple_music_link
+    user_release.spotify_link = release.spotify_link
+    user_release.date_updated = release.date_updated
+    db.session.add(user_release)
+    db.session.commit()
+
+    return user_release, notify
 
 
 def update_all_user_releases(artist_mbid, notifications=True):

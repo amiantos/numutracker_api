@@ -16,4 +16,4 @@ class Config():
 
 class Test(Config):
     ENVIROMENT = "test"
-    SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DB_URI', 'postgresql://numu:numu@postgres/test')
+    SQLALCHEMY_DATABASE_URI = 'postgresql://numu:numu@postgres/test'

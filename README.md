@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/amiantos/numutracker_api.svg?branch=master)](https://travis-ci.org/amiantos/numutracker_api)
+
 # Numu Tracker API
 
 This is the home for the third version of the Numu Tracker API. If you're not familiar with what Numu Tracker is, check out [the iOS App repository](https://www.github.com/amiantos/numutracker_ios) to see what it is all about, or keep reading.

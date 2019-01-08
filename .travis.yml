@@ -11,11 +11,11 @@ before_install:
   - docker ps
 
 before_script:
-  - docker-compose pull
-  - docker-compose build
+  - docker-compose -f docker-compose.travis.yml pull
+  - docker-compose -f docker-compose.travis.yml build
 
 script:
-  - docker-compose run --user=root --rm api pytest
+  - docker-compose -f docker-compose.travis.yml run --user=root --rm api pytest
 
 after_script:
-  - docker-compose down
+  - docker-compose -f docker-compose.travis.yml down

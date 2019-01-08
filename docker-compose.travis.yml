@@ -12,7 +12,7 @@ services:
     networks:
       - numu_net
     depends_on:
-      - postgres
+      - numu_postgres
 
   numu_postgres:
     image: postgres:10.4

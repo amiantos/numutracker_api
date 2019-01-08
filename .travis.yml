@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - sudo service postgresql stop
+  - while sudo lsof -Pi :5432 -sTCP:LISTEN -t; do sleep 1; done
+  - pip --version
+  - docker --version
+  - docker-compose --version
+  - docker ps
+
+before_script:
+  - docker-compose pull
+  - docker-compose build
+
+script:
+  - docker-compose run --user=root --rm api pytest
+
+after_script:
+  - docker-compose down

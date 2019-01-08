@@ -3,7 +3,7 @@ services:
   api:
     build: .
     environment:
-      - DB_URI=postgresql://numu:numu@numu_postgres/numu
+      - TEST_DB_URI=postgresql://numu:numu@numu_postgres/numu
     command: /opt/app/run_devserver.sh
     volumes:
       - ./:/opt/app

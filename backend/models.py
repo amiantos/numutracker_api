@@ -70,7 +70,7 @@ class Artist(db.Model):
     def __repr__(self):
         return '<Artist {} - {}>'.format(self.name, self.mbid)
 
- 
+
 Index('artist_name', Artist.name)
 
 

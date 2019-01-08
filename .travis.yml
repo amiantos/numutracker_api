@@ -2,15 +2,16 @@ sudo: required
 services:
   - docker
 
+
 before_install:
-  - sudo service postgresql stop
-  - while sudo lsof -Pi :5432 -sTCP:LISTEN -t; do sleep 1; done
   - pip --version
   - docker --version
   - docker-compose --version
   - docker ps
 
 before_script:
+  - psql -c "CREATE DATABASE test;" -U postgres
+  - psql -c "CREATE USER numu WITH PASSWORD 'numu';" -U postgres
   - docker-compose -f docker-compose.travis.yml pull
   - docker-compose -f docker-compose.travis.yml build
 

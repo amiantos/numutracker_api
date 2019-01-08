@@ -11,22 +11,6 @@ services:
       - "80:80"
     networks:
       - numu_net
-    depends_on:
-      - numu_postgres
-
-  numu_postgres:
-    image: postgres:10.4
-    volumes:
-      - numu_pgdata:/var/lib/postgresql/data/pgdata
-    environment:
-      - POSTGRES_USER=numu
-      - POSTGRES_DB=numu
-      - POSTGRES_PASSWORD=numu
-      - PGDATA=/var/lib/postgresql/data/pgdata
-    ports:
-      - "5432:5432"
-    networks:
-      - numu_net
 
 volumes:
   numu_pgdata:

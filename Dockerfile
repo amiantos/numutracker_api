@@ -1,7 +1,5 @@
 FROM ubuntu:18.04
 
-RUN apt-get update && apt-get install -y
-
 RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-dev \
@@ -26,4 +24,3 @@ EXPOSE 80
 WORKDIR /opt/app
 
 RUN ["chmod", "+x", "/opt/app/run_devserver.sh"]
-ENTRYPOINT ["sh", "run_devserver.sh"]

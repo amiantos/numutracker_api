@@ -1,11 +1,10 @@
 version: '3'
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     environment:
       - DB_URI=postgresql://numu:numu@postgres/numu
+    command: /opt/app/run_devserver.sh
     volumes:
       - ./:/opt/app
     ports:
@@ -36,4 +35,3 @@ volumes:
 networks:
   numu_net:
     driver: bridge
-    external: false

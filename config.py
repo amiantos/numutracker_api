@@ -12,3 +12,8 @@ class Config():
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DO_ACCESS_KEY = os.getenv('DO_ACCESS_KEY')
     DO_SECRET_KEY = os.getenv('DO_SECRET_KEY')
+
+
+class Test(Config):
+    ENVIROMENT = "test"
+    SQLALCHEMY_DATABASE_URI = 'postgresql://numu:numu@postgres/test'

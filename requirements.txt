@@ -4,9 +4,12 @@ Flask-Bcrypt
 Flask-HTTPAuth
 Flask-Migrate
 Flask-SQLAlchemy
+SQLAlchemy-Utils
 musicbrainzngs
 psycopg2-binary
 python-dotenv
 requests
 simpleflock
 Pillow
+pytest
+uWSGI

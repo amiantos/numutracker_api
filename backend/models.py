@@ -1,4 +1,4 @@
-from sqlalchemy import (Binary, Boolean, Column, Date, DateTime,
+from sqlalchemy import (LargeBinary, Boolean, Column, Date, DateTime,
                         ForeignKey, Integer, String, Index, Text)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func, expression
@@ -10,7 +10,7 @@ class User(db.Model):
     id = Column(Integer, primary_key=True)
     email = Column(String(120), index=True, nullable=True, unique=True)
     icloud = Column(String(120), index=True, nullable=True, unique=True)
-    password_hash = Column(Binary(), nullable=True)
+    password_hash = Column(LargeBinary(), nullable=True)
     date_joined = Column(DateTime(True), default=func.now())
     date_last_activity = Column(DateTime(True), default=func.now())
 

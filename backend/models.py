@@ -1,5 +1,15 @@
-from sqlalchemy import (LargeBinary, Boolean, Column, Date, DateTime,
-                        ForeignKey, Integer, String, Index, Text)
+from sqlalchemy import (
+    LargeBinary,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Index,
+    Text,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func, expression
 
@@ -29,23 +39,23 @@ class User(db.Model):
     def filters(self):
         filters = []
         if self.album:
-            filters.append('Album')
+            filters.append("Album")
         if self.single:
-            filters.append('Single')
+            filters.append("Single")
         if self.ep:
-            filters.append('EP')
+            filters.append("EP")
         if self.live:
-            filters.append('Live')
+            filters.append("Live")
         if self.soundtrack:
-            filters.append('Soundtrack')
+            filters.append("Soundtrack")
         if self.remix:
-            filters.append('Remix')
+            filters.append("Remix")
         if self.other:
-            filters.append('Other')
+            filters.append("Other")
         return filters
 
     def __repr__(self):
-        return '<User {}>'.format(self.id)
+        return "<User {}>".format(self.id)
 
 
 class Artist(db.Model):
@@ -53,7 +63,9 @@ class Artist(db.Model):
     name = Column(String(512), nullable=False)
     sort_name = Column(String(512), nullable=False)
     disambiguation = Column(String(512), nullable=False)
-    art = Column(Boolean(), nullable=False, default=False, server_default=expression.false())
+    art = Column(
+        Boolean(), nullable=False, default=False, server_default=expression.false()
+    )
 
     date_added = Column(DateTime(True), nullable=False, default=func.now())
     date_art_check = Column(DateTime(True), nullable=True, default=None)
@@ -68,37 +80,42 @@ class Artist(db.Model):
     releases = relationship("Release", secondary="artist_release", lazy=True)
 
     def __repr__(self):
-        return '<Artist {} - {}>'.format(self.name, self.mbid)
+        return "<Artist {} - {}>".format(self.name, self.mbid)
 
 
-Index('artist_name', Artist.name)
+Index("artist_name", Artist.name)
 
 
 class ArtistAka(db.Model):
     artist_mbid = Column(
         String(36),
-        ForeignKey('artist.mbid', onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("artist.mbid", onupdate="CASCADE", ondelete="CASCADE"),
         index=True,
-        primary_key=True)
-    name = Column(
-        String(512),
-        nullable=False,
-        primary_key=True)
+        primary_key=True,
+    )
+    name = Column(String(512), nullable=False, primary_key=True)
 
     def __repr__(self):
-        return '<ArtistAka {} - {}>'.format(self.artist_mbid, self.name)
+        return "<ArtistAka {} - {}>".format(self.artist_mbid, self.name)
 
 
 class UserArtist(db.Model):
     user_id = Column(
         Integer,
-        ForeignKey('user.id', onupdate="CASCADE", ondelete="CASCADE"),
-        primary_key=True)
+        ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"),
+        primary_key=True,
+    )
     mbid = Column(
         String(36),
-        ForeignKey('artist.mbid', onupdate="CASCADE", ondelete="CASCADE",
-                   deferrable=True, initially="DEFERRED"),
-        primary_key=True)
+        ForeignKey(
+            "artist.mbid",
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED",
+        ),
+        primary_key=True,
+    )
     name = Column(String(512), nullable=False)
     sort_name = Column(String(512), nullable=False)
 
@@ -111,30 +128,34 @@ class UserArtist(db.Model):
     artist = relationship("Artist", lazy=False)
 
     def __repr__(self):
-        return '<UserArtist {} - {}>'.format(self.user_id, self.mbid)
+        return "<UserArtist {} - {}>".format(self.user_id, self.mbid)
 
 
 class ArtistRelease(db.Model):
     artist_mbid = Column(
         String(36),
         ForeignKey(
-            'artist.mbid',
+            "artist.mbid",
             onupdate="CASCADE",
             ondelete="CASCADE",
             deferrable=True,
-            initially="DEFERRED"),
+            initially="DEFERRED",
+        ),
         primary_key=True,
-        index=True)
+        index=True,
+    )
     release_mbid = Column(
         String(36),
         ForeignKey(
-            'release.mbid',
+            "release.mbid",
             onupdate="CASCADE",
             ondelete="CASCADE",
             deferrable=True,
-            initially="DEFERRED"),
+            initially="DEFERRED",
+        ),
         primary_key=True,
-        index=True)
+        index=True,
+    )
 
 
 class Release(db.Model):
@@ -142,7 +163,9 @@ class Release(db.Model):
     title = Column(Text, nullable=False)
     artist_names = Column(Text, nullable=False)
     type = Column(String(36), index=True)
-    art = Column(Boolean(), nullable=False, default=False, server_default=expression.false())
+    art = Column(
+        Boolean(), nullable=False, default=False, server_default=expression.false()
+    )
 
     date_release = Column(Date(), nullable=False, index=True)
     date_added = Column(DateTime(True), nullable=False, default=func.now())
@@ -156,36 +179,39 @@ class Release(db.Model):
     artists = db.relationship("Artist", secondary="artist_release", lazy=False)
 
     def __repr__(self):
-        return '<Release {} - {} - {}>'.format(
-            self.artist_names,
-            self.title,
-            self.mbid)
+        return "<Release {} - {} - {}>".format(self.artist_names, self.title, self.mbid)
 
 
 class UserRelease(db.Model):
     user_id = Column(
         Integer,
         ForeignKey(
-            'user.id',
+            "user.id",
             onupdate="CASCADE",
             ondelete="CASCADE",
             deferrable=True,
-            initially="DEFERRED"),
+            initially="DEFERRED",
+        ),
         index=True,
-        primary_key=True)
+        primary_key=True,
+    )
     mbid = Column(
         String(36),
         ForeignKey(
-            'release.mbid',
+            "release.mbid",
             onupdate="CASCADE",
             ondelete="CASCADE",
             deferrable=True,
-            initially="DEFERRED"),
-        primary_key=True)
+            initially="DEFERRED",
+        ),
+        primary_key=True,
+    )
     title = Column(Text, nullable=False)
     artist_names = Column(Text, nullable=False)
     type = Column(String(36), index=True)
-    art = Column(Boolean(), nullable=False, default=False, server_default=expression.false())
+    art = Column(
+        Boolean(), nullable=False, default=False, server_default=expression.false()
+    )
 
     date_release = Column(Date(), nullable=False, index=True)
     date_added = Column(DateTime(True), nullable=False, default=func.now())
@@ -201,84 +227,81 @@ class UserRelease(db.Model):
     release = relationship("Release", lazy=False)
 
     def __repr__(self):
-        return '<UserRelease {} - {}>'.format(
-            self.user_id,
-            self.mbid)
+        return "<UserRelease {} - {}>".format(self.user_id, self.mbid)
 
 
 Index(
-    'user_releases_listened',
+    "user_releases_listened",
     UserRelease.user_id,
     UserRelease.type,
     UserRelease.listened,
-    UserRelease.date_release.desc())
+    UserRelease.date_release.desc(),
+)
 
 Index(
-    'user_releases',
+    "user_releases",
     UserRelease.user_id,
     UserRelease.type,
-    UserRelease.date_release.desc())
+    UserRelease.date_release.desc(),
+)
 
 
 class ArtistImport(db.Model):
     user_id = Column(
         Integer,
         ForeignKey(
-            'user.id',
+            "user.id",
             onupdate="CASCADE",
             ondelete="CASCADE",
             deferrable=True,
-            initially="DEFERRED"),
+            initially="DEFERRED",
+        ),
         index=True,
-        primary_key=True)
+        primary_key=True,
+    )
     import_name = Column(String(100), primary_key=True)
     import_mbid = Column(String(36), nullable=True)
     import_method = Column(String(36))
     found_mbid = Column(
         String(36),
         ForeignKey(
-            'artist.mbid',
+            "artist.mbid",
             onupdate="CASCADE",
             ondelete="SET NULL",
             deferrable=True,
-            initially="DEFERRED"),
-        nullable=True)
+            initially="DEFERRED",
+        ),
+        nullable=True,
+    )
 
     date_added = Column(DateTime(True), nullable=False, default=func.now())
     date_checked = Column(DateTime(True), nullable=True, default=None)
 
     def __repr__(self):
-        return '<ArtistImport {} - {}>'.format(
-            self.user_id,
-            self.import_name)
+        return "<ArtistImport {} - {}>".format(self.user_id, self.import_name)
 
 
 class UserNotifications(db.Model):
     user_id = Column(
         Integer,
-        ForeignKey(
-            'user.id',
-            onupdate="CASCADE",
-            ondelete="CASCADE"),
-        primary_key=True)
+        ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"),
+        primary_key=True,
+    )
     release_mbid = Column(
         String(36),
         ForeignKey(
-            'release.mbid',
+            "release.mbid",
             onupdate="CASCADE",
             ondelete="CASCADE",
             deferrable=True,
-            initially="DEFERRED"),
-        primary_key=True)
+            initially="DEFERRED",
+        ),
+        primary_key=True,
+    )
     type = Column(String(), index=True)
     date_created = Column(
-        DateTime(True),
-        index=True,
-        nullable=False,
-        default=func.now())
-    date_sent = Column(
-        DateTime(True),
-        nullable=True,
-        default=None)
+        DateTime(True), index=True, nullable=False, default=func.now()
+    )
+    date_sent = Column(DateTime(True), nullable=True, default=None)
 
     release = relationship(Release, lazy=False, uselist=False)

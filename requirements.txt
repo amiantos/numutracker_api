@@ -13,3 +13,5 @@ simpleflock
 Pillow
 pytest
 uWSGI
+factory-boy
+pytz

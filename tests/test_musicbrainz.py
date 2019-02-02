@@ -3,7 +3,7 @@ from .test_api import BaseTestCase
 from backend import musicbrainz as mbz
 
 
-class TestTesting(BaseTestCase):
+class TestMusicbrainz(BaseTestCase):
     def setUp(self):
         pass
 
@@ -23,7 +23,7 @@ class TestTesting(BaseTestCase):
         assert result.get('release').get('id') == 'fcb872a2-7ef9-3ed0-bd4a-7c55c78179b6'
 
     def test_get_artist_releases(self):
-        # Uses the artist Tulsa, defunt band should only have 1 release.
+        # Uses the artist Tulsa, defunct band should only have 1 release.
         # https://musicbrainz.org/artist/f123ef70-f563-43c2-b0e6-8f9afc0a38ad
         result = mbz.get_artist_releases('f123ef70-f563-43c2-b0e6-8f9afc0a38ad')
         assert len(result.get('releases')) == 1

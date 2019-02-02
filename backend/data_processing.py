@@ -14,19 +14,19 @@ from numu import db
 def add_numu_artist_from_mb(artist_name=None, artist_mbid=None):
     mb_results = mb.get_artist(artist_mbid)
 
-    if artist_name and mb_results and mb_results.get('status') != 200:
+    if artist_name and mb_results and mb_results.get("status") != 200:
         mb_results = mb.search_artist_by_name(artist_name)
 
-    if mb_results and mb_results.get('status') == 200:
-        mb_artist = mb_results['artist']
-        artist = repo.get_numu_artist_by_mbid(mb_artist['id'])
+    if mb_results and mb_results.get("status") == 200:
+        mb_artist = mb_results["artist"]
+        artist = repo.get_numu_artist_by_mbid(mb_artist["id"])
         if artist is None:
             artist = Artist(
-                mbid=mb_artist.get('id'),
-                name=mb_artist.get('name'),
-                sort_name=mb_artist.get('sort-name'),
-                disambiguation=mb_artist.get('disambiguation', ''),
-                date_updated=func.now()
+                mbid=mb_artist.get("id"),
+                name=mb_artist.get("name"),
+                sort_name=mb_artist.get("sort-name"),
+                disambiguation=mb_artist.get("disambiguation", ""),
+                date_updated=func.now(),
             )
             db.session.add(artist)
             db.session.commit()
@@ -40,15 +40,15 @@ def add_numu_releases_from_mb(artist):
     mb_releases = mb.get_artist_releases(artist.mbid)
     releases_added = []
 
-    if mb_releases['status'] != 200:
+    if mb_releases["status"] != 200:
         numu_app.logger.info("No releases found.")
         return None
 
-    for mb_release in mb_releases['releases']:
-        if mb_release.get('id') in releases_added:
+    for mb_release in mb_releases["releases"]:
+        if mb_release.get("id") in releases_added:
             continue
 
-        release = repo.get_numu_release(mb_release.get('id'))
+        release = repo.get_numu_release(mb_release.get("id"))
 
         if release is None:
             release = create_or_update_numu_release(mb_release)
@@ -66,30 +66,29 @@ def add_numu_releases_from_mb(artist):
 def create_or_update_numu_release(mb_release):
     """Parse an MB release and turn it into a release object.
     Returns release object."""
-    numu_date = get_numu_date(mb_release.get('first-release-date'))
-    if numu_date is None or mb_release.get('artist-credit') is None:
+    numu_date = get_numu_date(mb_release.get("first-release-date"))
+    if numu_date is None or mb_release.get("artist-credit") is None:
         return None
 
-    release = repo.get_numu_release(mb_release.get('id'))
+    release = repo.get_numu_release(mb_release.get("id"))
     if release is None:
         release = Release()
 
-    release.mbid = mb_release.get('id')
-    release.title = mb_release.get('title')
+    release.mbid = mb_release.get("id")
+    release.title = mb_release.get("title")
     release.type = get_numu_type(mb_release)
     release.date_release = numu_date
-    release.artist_names = mb_release.get('artist-credit-phrase')
+    release.artist_names = mb_release.get("artist-credit-phrase")
     release.date_updated = func.now()
 
     db.session.add(release)
     db.session.commit()
 
-    for mb_artist in mb_release.get('artist-credit'):
-        if type(mb_artist) == dict and mb_artist['artist']:
-            artist = repo.get_numu_artist_by_mbid(mb_artist['artist']['id'])
+    for mb_artist in mb_release.get("artist-credit"):
+        if type(mb_artist) == dict and mb_artist["artist"]:
+            artist = repo.get_numu_artist_by_mbid(mb_artist["artist"]["id"])
             if artist is None:
-                artist = add_numu_artist_from_mb(
-                    artist_mbid=mb_artist['artist']['id'])
+                artist = add_numu_artist_from_mb(artist_mbid=mb_artist["artist"]["id"])
             if artist and artist not in release.artists:
                 release.artists.append(artist)
 
@@ -102,6 +101,7 @@ def create_or_update_numu_release(mb_release):
 # ------------------------------------------------------------------------
 # Update Data
 # ------------------------------------------------------------------------
+
 
 def delete_numu_artist(artist):
     """Delete provided Numu Artist"""
@@ -116,8 +116,8 @@ def delete_numu_artist(artist):
 
 def update_numu_artist_from_mb(artist):
     mb_result = mb.get_artist(artist.mbid)
-    status = mb_result['status']
-    mb_artist = mb_result['artist']
+    status = mb_result["status"]
+    mb_artist = mb_result["artist"]
     changed = False
 
     if status == 404:
@@ -126,32 +126,31 @@ def update_numu_artist_from_mb(artist):
         delete_numu_artist(artist)
         return None
 
-    if status == 200 and mb_artist['id'] != artist.mbid:
+    if status == 200 and mb_artist["id"] != artist.mbid:
         # Artist has been merged
-        new_mbid = mb_artist['id']
-        numu_app.logger.info(
-            "Artist Merged: {}, New MBID: {}".format(artist, new_mbid))
+        new_mbid = mb_artist["id"]
+        numu_app.logger.info("Artist Merged: {}, New MBID: {}".format(artist, new_mbid))
         new_artist = repo.get_numu_artist_by_mbid(new_mbid)
         if not new_artist:
             new_artist = add_numu_artist_from_mb(artist_mbid=new_mbid)
             add_numu_releases_from_mb(new_artist)
-        user_artists = UserArtist.query.filter_by(
-            mbid=new_mbid).update(
-                dict(mbid=new_artist.mbid, date_updated=None))
+        user_artists = UserArtist.query.filter_by(mbid=new_mbid).update(
+            dict(mbid=new_artist.mbid, date_updated=None)
+        )
         db.session.commit()
         delete_numu_artist(artist)
         changed = True
         artist = new_artist
 
     if status == 200:
-        if artist.name != mb_artist['name']:
-            artist.name = mb_artist['name']
+        if artist.name != mb_artist["name"]:
+            artist.name = mb_artist["name"]
             changed = True
-        if artist.sort_name != mb_artist['sort-name']:
-            artist.sort_name = mb_artist['sort-name']
+        if artist.sort_name != mb_artist["sort-name"]:
+            artist.sort_name = mb_artist["sort-name"]
             changed = True
-        if artist.disambiguation != mb_artist.get('disambiguation', ''):
-            artist.disambiguation = mb_artist.get('disambiguation', '')
+        if artist.disambiguation != mb_artist.get("disambiguation", ""):
+            artist.disambiguation = mb_artist.get("disambiguation", "")
             changed = True
 
     if changed or artist.date_updated is None:
@@ -200,6 +199,7 @@ def update_numu_release_from_mb(release):
 # Create Relationships
 # ------------------------------------------------------------------------
 
+
 def update_user_artist(user_artist, new_artist):
     user_artist.name = new_artist.name
     user_artist.sort_name = new_artist.sort_name
@@ -210,17 +210,14 @@ def update_user_artist(user_artist, new_artist):
 
 
 def create_or_update_user_artist(user_id, artist, import_method):
-    user_artist = UserArtist.query.filter_by(
-        user_id=user_id,
-        mbid=artist.mbid
-    ).first()
+    user_artist = UserArtist.query.filter_by(user_id=user_id, mbid=artist.mbid).first()
     if user_artist is None:
         user_artist = UserArtist(
             user_id=user_id,
             mbid=artist.mbid,
             follow_method=import_method,
             date_followed=func.now(),
-            following=True
+            following=True,
         )
     user_artist.name = artist.name
     user_artist.sort_name = artist.sort_name
@@ -238,9 +235,7 @@ def create_or_update_user_releases(user_artist, notifications=True):
 
     for release in releases:
         user_release, notify = create_or_update_user_release(
-            user_artist.user_id,
-            release,
-            'automatic'
+            user_artist.user_id, release, "automatic"
         )
 
         # TODO: Process Notifications
@@ -252,7 +247,8 @@ def create_or_update_user_releases(user_artist, notifications=True):
 def create_or_update_user_release(user_id, release, add_method):
     notify = False
     user_release = UserRelease.query.filter_by(
-            user_id=user_id, mbid=release.mbid).first()
+        user_id=user_id, mbid=release.mbid
+    ).first()
     if user_release is None:
         user_release = UserRelease()
         user_release.add_method = add_method
@@ -286,52 +282,53 @@ def update_all_user_releases(artist_mbid, notifications=True):
 
 
 def get_numu_date(mb_release_date):
-    flat_date = mb_release_date.replace('-', '')
-    year = flat_date[:4] or '0000'
-    month = flat_date[4:6] or '01'
-    day = flat_date[6:8] or '01'
+    flat_date = mb_release_date.replace("-", "")
+    year = flat_date[:4] or "0000"
+    month = flat_date[4:6] or "01"
+    day = flat_date[6:8] or "01"
 
-    if month == '??' or day == '00':
-        month = '01'
-    if day == '??' or day == '00':
-        day = '01'
-    if year == '0000' or year == '????':
+    if month == "??" or day == "00":
+        month = "01"
+    if day == "??" or day == "00":
+        day = "01"
+    if year == "0000" or year == "????":
         return None
 
     return "{}-{}-{}".format(year, month, day)
 
 
 def get_numu_type(mb_release):
-    primary_type = mb_release.get('primary-type')
-    secondary_types = mb_release.get('secondary-type-list', {})
-    if 'Live' in secondary_types or primary_type == 'Live':
-        return 'Live'
-    if 'Compilation' in secondary_types or primary_type == 'Compilation':
-        return 'Compilation'
-    if 'Remix' in secondary_types or primary_type == 'Remix':
-        return 'Remix'
-    if 'Soundtrack' in secondary_types or primary_type == 'Soundtrack':
-        return 'Soundtrack'
-    if 'Interview' in secondary_types or primary_type == 'Interview':
-        return 'Interview'
-    if 'Spokenword' in secondary_types or primary_type == 'Spokenword':
-        return 'Spokenword'
-    if 'Audiobook' in secondary_types or primary_type == 'Audiobook':
-        return 'Audiobook'
-    if 'Mixtape' in secondary_types or primary_type == 'Mixtape':
-        return 'Mixtape'
-    if 'Demo' in secondary_types or primary_type == 'Demo':
-        return 'Demo'
-    if 'DJ-mix' in secondary_types or primary_type == 'DJ-mix':
-        return 'DJ-mix'
-    if primary_type == 'Album':
-        return 'Album'
-    if primary_type == 'EP':
-        return 'EP'
-    if primary_type == 'Single':
-        return 'Single'
-    if primary_type == 'Broadcast':
-        return 'Broadcast'
-    if primary_type == 'Other':
-        return 'Other'
-    return 'Unknown'
+    primary_type = mb_release.get("primary-type")
+    secondary_types = mb_release.get("secondary-type-list", {})
+    if "Live" in secondary_types or primary_type == "Live":
+        return "Live"
+    if "Compilation" in secondary_types or primary_type == "Compilation":
+        return "Compilation"
+    if "Remix" in secondary_types or primary_type == "Remix":
+        return "Remix"
+    if "Soundtrack" in secondary_types or primary_type == "Soundtrack":
+        return "Soundtrack"
+    if "Interview" in secondary_types or primary_type == "Interview":
+        return "Interview"
+    if "Spokenword" in secondary_types or primary_type == "Spokenword":
+        return "Spokenword"
+    if "Audiobook" in secondary_types or primary_type == "Audiobook":
+        return "Audiobook"
+    if "Mixtape" in secondary_types or primary_type == "Mixtape":
+        return "Mixtape"
+    if "Demo" in secondary_types or primary_type == "Demo":
+        return "Demo"
+    if "DJ-mix" in secondary_types or primary_type == "DJ-mix":
+        return "DJ-mix"
+    if primary_type == "Album":
+        return "Album"
+    if primary_type == "EP":
+        return "EP"
+    if primary_type == "Single":
+        return "Single"
+    if primary_type == "Broadcast":
+        return "Broadcast"
+    if primary_type == "Other":
+        return "Other"
+    return "Unknown"
+

@@ -29,16 +29,18 @@ def run_command():
     scan_imported_artists(True)
 
     # Scan artists
-    artists = Artist.query.filter(
-        or_(
-            Artist.date_checked < date_offset,
-            Artist.date_checked.is_(None)
+    artists = (
+        Artist.query.filter(
+            or_(Artist.date_checked < date_offset, Artist.date_checked.is_(None))
         )
-    ).order_by(Artist.date_checked.asc().nullsfirst()).limit(limit).all()
+        .order_by(Artist.date_checked.asc().nullsfirst())
+        .limit(limit)
+        .all()
+    )
 
     for artist in artists:
         current_time = time.time()
-        if (current_time - start)/60 < 14:
+        if (current_time - start) / 60 < 14:
             numu_app.logger.info("Updating Artist: {}".format(artist))
             updated_artist = update_numu_artist_from_mb(artist)
             numu_app.logger.info("Updated Artist: {}".format(updated_artist))
@@ -50,4 +52,5 @@ def run_command():
 
     end = time.time()
     numu_app.logger.info(
-        "MB Process completed, time: {} minutes".format((end - start)/60))
+        "MB Process completed, time: {} minutes".format((end - start) / 60)
+    )

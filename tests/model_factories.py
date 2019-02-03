@@ -37,7 +37,7 @@ class ArtistFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = ArtistModel
         sqlalchemy_session = db.session
 
-    mbid = factory.fuzzy.FuzzyAttribute(lambda: str(uuid4()).upper())
+    mbid = factory.fuzzy.FuzzyAttribute(lambda: utils.uuid())
     name = factory.Faker("name")
     sort_name = factory.SelfAttribute("name")
     disambiguation = factory.SelfAttribute("name")
@@ -55,6 +55,7 @@ class UserArtistFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = UserArtistModel
         sqlalchemy_session = db.session
 
+    uuid = factory.fuzzy.FuzzyAttribute(lambda: utils.uuid())
     user_id = factory.SelfAttribute("user.id")
     mbid = factory.SelfAttribute("artist.mbid")
     name = factory.SelfAttribute("artist.name")

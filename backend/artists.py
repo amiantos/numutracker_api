@@ -34,6 +34,10 @@ class ArtistProcessing:
         artist = None
 
         if mbid:
+            artist = self.repo.get_artist_by_mbid(mbid)
+            if artist is not None:
+                self.logger.info("Artist {} found locally.".format(artist.name))
+                return artist
             artist = self._add_artist_by_mbid(mbid)
 
         if name and artist is None:
@@ -66,6 +70,7 @@ class ArtistProcessing:
     def _save_mb_artist(self, mb_artist):
         artist = self.repo.get_artist_by_mbid(mb_artist.get("id"))
         if artist is not None:
+            self.logger.info("Artist {} found locally.".format(artist.name))
             return artist
 
         artist = Artist(
@@ -77,6 +82,8 @@ class ArtistProcessing:
         )
         self.repo.save(artist)
         self.repo.commit()
+
+        self.logger.info("New artist added: {}".format(artist))
 
         return artist
 
@@ -154,7 +161,6 @@ class ArtistProcessing:
             self.repo.save(user_artist)
         self.repo.commit()
 
-        # Delete old artist
         self.delete_artist(artist)
 
     # ------------------------------------

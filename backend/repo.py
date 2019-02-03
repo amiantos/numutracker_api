@@ -55,6 +55,37 @@ class Repo:
     def delete_user_artists_by_mbid(self, mbid):
         return UserArtist.query.filter_by(mbid=mbid).delete()
 
+    def update_user_artists(self, where, updates):
+        """
+        Update all kits matching the where filter
+        """
+        UserArtist.query.filter_by(**where).update(updates)
+
+    # -----------------------------------
+    # Release
+    # -----------------------------------
+
+    def get_release_by_mbid(self, mbid):
+        return Release.query.filter_by(mbid=mbid).first()
+
+    def get_releases_by_artist_mbid(self, mbid):
+        return (
+            Artist.query.filter_by(mbid=mbid)
+            .options(joinedload("releases"))
+            .first()
+            .releases
+        )
+
+    # -----------------------------------
+    # User Release
+    # -----------------------------------
+
+    def get_user_release(self, user_id, mbid):
+        return UserRelease.query.filter_by(user_id=user_id, mbid=mbid).first()
+
+    def get_user_releases_for_artist(self, user_id, mbid):
+        return UserArtist.query.filter_by(user_id=user_id, mbid=mbid).first().releases
+
 
 # --------------------------------------
 # User

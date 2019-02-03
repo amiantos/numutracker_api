@@ -1,8 +1,9 @@
 from sqlalchemy.sql import func
 
 from backend import musicbrainz
-from backend.models import Artist
+from backend.models import Artist, UserArtist
 from backend.repo import Repo
+from backend import utils
 from numu import app as numu_app
 
 
@@ -27,7 +28,7 @@ class ArtistProcessing:
         raise Exception
 
     # ------------------------------------
-    # Add
+    # Artist: Add
     # ------------------------------------
 
     def add_artist(self, name=None, mbid=None):
@@ -88,7 +89,7 @@ class ArtistProcessing:
         return artist
 
     # ------------------------------------
-    # Update
+    # Artist: Update
     # ------------------------------------
 
     def update_artist(self, artist):
@@ -143,7 +144,7 @@ class ArtistProcessing:
         self.repo.commit()
 
     # ------------------------------------
-    # Replace
+    # Artist: Replace
     # ------------------------------------
 
     def replace_artist(self, artist, new_artist):
@@ -164,10 +165,35 @@ class ArtistProcessing:
         self.delete_artist(artist)
 
     # ------------------------------------
-    # Delete
+    # Artist: Delete
     # ------------------------------------
 
     def delete_artist(self, artist):
         self.repo.delete_user_artists_by_mbid(artist.mbid)
         self.repo.delete(artist)
         self.repo.commit()
+
+    # ------------------------------------
+    # User Artist: Add
+    # ------------------------------------
+
+    def add_user_artist(self, user_id, artist, import_method):
+        user_artist = self.repo.get_user_artist(user_id, artist.mbid)
+        if user_artist is None:
+            user_artist = UserArtist(
+                uuid=utils.uuid(),
+                user_id=user_id,
+                mbid=artist.mbid,
+                follow_method=import_method,
+                date_followed=func.now(),
+                following=True,
+            )
+        user_artist.name = artist.name
+        user_artist.sort_name = artist.sort_name
+        user_artist.date_updated = func.now()
+
+        self.repo.save(user_artist)
+        self.repo.commit()
+
+        return user_artist
+

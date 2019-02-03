@@ -1,5 +1,5 @@
 from numu import app as numu_app
-from backend.import_processing import scan_imported_artists
+from backend.user_artists import import_user_artist
 import simpleflock
 
 
@@ -16,4 +16,4 @@ def run_command():
     """This command ensures that all users have the most updated releases."""
 
     # Scan artist imports
-    scan_imported_artists(False)
+    import_user_artist(check_musicbrainz=False)

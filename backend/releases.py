@@ -93,6 +93,7 @@ class ReleaseProcessing:
         return release
 
     def add_user_release(self, user_artist, release):
+        notify = False
         user_release = self.repo.get_user_release(user_artist.user_id, release.mbid)
         if user_release is None:
             user_release = UserRelease(
@@ -101,6 +102,7 @@ class ReleaseProcessing:
                 user_id=user_artist.user_id,
                 mbid=release.mbid,
             )
+            notify = True
         user_release.title = release.title
         user_release.artist_names = release.artist_names
         user_release.type = release.type
@@ -115,12 +117,12 @@ class ReleaseProcessing:
 
         self.logger.info("New user release created {}".format(user_release))
 
-        return user_release
+        return user_release, notify
 
     def add_user_releases(self, user_artist, releases, notifications):
         for release in releases:
-            user_release = self.add_user_release(user_artist, release)
-            if notifications:
+            user_release, notify = self.add_user_release(user_artist, release)
+            if notifications and notify:
                 # TODO: Create notification
                 pass
 
@@ -134,9 +136,11 @@ class ReleaseProcessing:
     def update_user_release(self, release):
         pass
 
-    def update_user_releases(self, artist, notifications=True):
-        user_artists = self.repo.get_user_artists_by_mbid(artist.mbid)
+    def update_user_releases(self, artist, user_artist=None, notifications=True):
         releases = self.repo.get_releases_by_artist_mbid(artist.mbid)
-
-        for user_artist in user_artists:
+        if user_artist:
             self.add_user_releases(user_artist, releases, notifications)
+        else:
+            user_artists = self.repo.get_user_artists_by_mbid(artist.mbid)
+            for user_artist in user_artists:
+                self.add_user_releases(user_artist, releases, notifications)

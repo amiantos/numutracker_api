@@ -1,5 +1,14 @@
 from numu import bcrypt, db
-from backend.models import User, Artist, Release, ArtistAka, UserRelease, UserArtist
+from sqlalchemy import or_
+from backend.models import (
+    User,
+    Artist,
+    Release,
+    ArtistAka,
+    UserRelease,
+    UserArtist,
+    ArtistImport,
+)
 from sqlalchemy.orm import joinedload
 
 
@@ -85,6 +94,34 @@ class Repo:
 
     def get_user_releases_for_artist(self, user_id, mbid):
         return UserArtist.query.filter_by(user_id=user_id, mbid=mbid).first().releases
+
+    # -----------------------------------
+    # Artist Import
+    # -----------------------------------
+
+    def get_user_artist_imports(self, user_id):
+        return ArtistImport.query.filter(
+            ArtistImport.user_id == user_id,
+            ArtistImport.found_mbid.is_(None),
+            ArtistImport.date_checked.is_(None),
+        ).all()
+
+    def get_artist_imports(self, date_filter, limit):
+        return (
+            ArtistImport.query.filter(
+                ArtistImport.found_mbid.is_(None),
+                or_(
+                    ArtistImport.date_checked < date_filter,
+                    ArtistImport.date_checked.is_(None),
+                ),
+            )
+            .order_by(
+                ArtistImport.date_checked.asc().nullsfirst(),
+                ArtistImport.date_added.desc(),
+            )
+            .limit(limit)
+            .all()
+        )
 
 
 # --------------------------------------

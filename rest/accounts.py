@@ -1,11 +1,14 @@
 from flask import g, request
 
 import response
-from backend import data_processing, import_processing, repo, musicbrainz
+from backend import data_processing, repo, musicbrainz
 from backend.utils import grab_json
+from backend.repo import Repo
 from numu import app as numu_app
 from numu import auth, db
 from backend.user_artists import ImportProcessor
+from backend.releases import ReleaseProcessor
+from backend.artists import ArtistProcessor
 
 from . import app
 
@@ -56,7 +59,7 @@ def import_artists_endpoint():
     - artists: [string]
     - import_method: ['apple', 'spotify']
     """
-    import_processing = ImportProcessor()
+    import_processor = ImportProcessor()
     artists = request.json.get("artists")
     import_method = request.json.get("import_method")
     if not artists or len(artists) == 0:
@@ -64,11 +67,9 @@ def import_artists_endpoint():
     if not import_method:
         return response.error("Missing import_method")
 
-    saved_imports = import_processing.save_imports(g.user.id, artists, import_method)
+    saved_imports = import_processor.save_imports(g.user.id, artists, import_method)
     if saved_imports > 0:
-        import_processing.import_user_artists(
-            check_musicbrainz=False, user_id=g.user.id
-        )
+        import_processor.import_user_artists(check_musicbrainz=False, user_id=g.user.id)
 
     return response.success({"artists_imported": saved_imports})
 
@@ -84,6 +85,7 @@ def import_lastfm_artists():
     - (optional) limit: maximum 500, default 500
     """
     user = g.user
+    import_processor = ImportProcessor()
     username = request.json.get("username")
     period = request.json.get("period")
     limit = request.json.get("limit")
@@ -100,7 +102,7 @@ def import_lastfm_artists():
     if limit is None or limit > 500:
         limit = 500
 
-    result = ImportProcessor().import_from_lastfm(user.id, username, limit, period)
+    result = import_processor.import_from_lastfm(user.id, username, limit, period)
 
     return response.success({"artists_imported": result})
 
@@ -116,6 +118,9 @@ def import_numu_v2():
     - filters
     """
     user = g.user
+    repo = Repo()
+    import_processor = ImportProcessor()
+    release_processor = ReleaseProcessor()
     username = user.email if user.email else user.icloud
 
     result = {}
@@ -135,43 +140,32 @@ def import_numu_v2():
         user.soundtrack = bool(filters["soundtrack"])
         user.remix = bool(filters["remix"])
         user.other = bool(filters["other"])
-        db.session.add(user)
-        db.session.commit()
+        repo.save(user)
+        repo.commit()
 
     artists = data.get("artists")
     if artists:
-        imported = import_processing.import_artists_v2(user, artists)
-        if imported > 0:
-            result["artists_imported"] = imported
+        imported = import_processor.save_imports(user.id, artists, "v2")
+        result["artists_imported"] = imported
 
     listens = data.get("listens")
     if listens:
         releases_added = 0
         for listen in listens:
             release_mbid = listen.get("mbid")
-            # Check for release in Numu
-            release = repo.get_numu_release(release_mbid)
-
-            # If releases doesn't exist, find in MB
-            if release is None:
-                mb_release = musicbrainz.get_release(release_mbid)
-                if mb_release and mb_release.get("status") == 200:
-                    release = data_processing.create_or_update_numu_release(
-                        mb_release["release"]
-                    )
+            release = release_processor.add_release(release_mbid)
 
             if release:
-                # Add user release
-                user_release, notify = data_processing.create_or_update_user_release(
-                    user.id, release, "v2"
+                user_release, notify = release_processor.add_user_release(
+                    release, user_id=user.id
                 )
-
-                # Update listen status
                 user_release.listened = True
                 user_release.date_listened = listen.get("listen_date")
-                db.session.add(user_release)
-                db.session.commit()
-                releases_added += 1
-        result["releases_listened"] = releases_added
+                repo.save(user_release)
+                repo.commit()
+                if notify:
+                    releases_added += 1
+
+        result["releases_added"] = releases_added
 
     return response.success(result)

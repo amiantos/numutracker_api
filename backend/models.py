@@ -194,7 +194,7 @@ class UserRelease(db.Model):
             ondelete="CASCADE"
         ),
         index=True,
-        nullable=False
+        nullable=True
     )
     user_id = Column(
         Integer,

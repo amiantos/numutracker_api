@@ -23,6 +23,9 @@ def uuid():
 
 
 def convert_mb_release_date(mb_release_date):
+    if mb_release_date is None:
+        return None
+
     flat_date = mb_release_date.replace("-", "")
     year = flat_date[:4] or "0000"
     month = flat_date[4:6] or "01"

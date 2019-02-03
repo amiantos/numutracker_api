@@ -23,6 +23,16 @@ class ReleaseProcessor:
     # Add
     # ------------------------------------
 
+    def add_release(self, mbid):
+        release = self.repo.get_release_by_mbid(mbid)
+        if release is None:
+            mb_release = self.mbz.get_release(mbid)
+
+            if mb_release.get("release") and mb_release.get("status") == 200:
+                release = self._save_mb_release(mb_release["release"])
+
+        return release
+
     def add_releases(self, artist):
         self.logger.info("Adding releases for {}".format(artist))
         mb_releases = self.mbz.get_artist_releases(artist.mbid)
@@ -61,7 +71,11 @@ class ReleaseProcessor:
             mb_release.get("first-release-date")
         )
         if date_release is None or mb_release.get("artist-credit") is None:
-            self.logger.info("Release does not qualify for inclusion")
+            self.logger.info(
+                "Release {} - {} does not qualify for inclusion".format(
+                    mb_release.get("id"), mb_release.get("title")
+                )
+            )
             return None
 
         release = Release(
@@ -92,17 +106,22 @@ class ReleaseProcessor:
 
         return release
 
-    def add_user_release(self, user_artist, release):
+    def add_user_release(self, release, user_artist=None, user_id=None):
+        user_artist_uuid = None
+        if user_artist:
+            user_id = user_artist.user_id
+            user_artist_uuid = user_artist.uuid
         notify = False
-        user_release = self.repo.get_user_release(user_artist.user_id, release.mbid)
+
+        user_release = self.repo.get_user_release(user_id, release.mbid)
         if user_release is None:
             user_release = UserRelease(
-                uuid=utils.uuid(),
-                user_artist_uuid=user_artist.uuid,
-                user_id=user_artist.user_id,
-                mbid=release.mbid,
+                uuid=utils.uuid(), user_id=user_id, mbid=release.mbid
             )
             notify = True
+            self.logger.info("New user release created {}".format(user_release))
+
+        user_release.user_artist_uuid = user_artist_uuid
         user_release.title = release.title
         user_release.artist_names = release.artist_names
         user_release.type = release.type
@@ -114,8 +133,6 @@ class ReleaseProcessor:
 
         self.repo.save(user_release)
         self.repo.commit()
-
-        self.logger.info("New user release created {}".format(user_release))
 
         return user_release, notify
 

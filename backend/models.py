@@ -240,7 +240,7 @@ class UserRelease(db.Model):
     release = relationship("Release", lazy=False)
 
     def __repr__(self):
-        return "<UserRelease {} - {}>".format(self.user_id, self.mbid)
+        return "<UserRelease {}>".format(self.uuid)
 
 
 Index(

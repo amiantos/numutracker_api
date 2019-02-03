@@ -106,6 +106,9 @@ class Repo:
             ArtistImport.date_checked.is_(None),
         ).all()
 
+    def get_artist_import(self, user_id, name):
+        return ArtistImport.query.filter_by(user_id=user_id, import_name=name).first()
+
     def get_artist_imports(self, date_filter, limit):
         return (
             ArtistImport.query.filter(

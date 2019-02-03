@@ -27,9 +27,6 @@ class TestReleases(BaseTestCase):
         assert releases_added == 1
         assert len(user_releases) == 1
 
-    def test_add_release_from_mb_with_followers(self):
-        pass
-
     def test_update_release_from_mb_with_followers_and_listeners(self):
         pass
 

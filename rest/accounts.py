@@ -5,6 +5,7 @@ from backend import data_processing, import_processing, repo, musicbrainz
 from backend.utils import grab_json
 from numu import app as numu_app
 from numu import auth, db
+from backend.user_artists import save_imports, import_user_artist
 
 from . import app
 
@@ -55,7 +56,6 @@ def import_artists_endpoint():
     - artists: [string]
     - import_method: ['apple', 'spotify']
     """
-    user = g.user
     artists = request.json.get("artists")
     import_method = request.json.get("import_method")
     if not artists or len(artists) == 0:
@@ -63,9 +63,11 @@ def import_artists_endpoint():
     if not import_method:
         return response.error("Missing import_method")
 
-    result = import_processing.import_artists(user, artists, import_method)
+    saved_imports = save_imports(g.user.id, artists, import_method)
+    if saved_imports > 0:
+        import_user_artist(check_musicbrainz=False, user_id=g.user.id)
 
-    return response.success({"artists_imported": result})
+    return response.success({"artists_imported": saved_imports})
 
 
 @app.route("/user/import/lastfm", methods=["POST"])

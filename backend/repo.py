@@ -49,6 +49,9 @@ class Repo:
     def get_user_artists_by_user_id(self, user_id):
         return UserArtist.query.filter_by(user_id=user_id).all()
 
+    def get_user_artist(self, user_id, mbid):
+        return UserArtist.query.filter_by(user_id=user_id, mbid=mbid).first()
+
     def delete_user_artists_by_mbid(self, mbid):
         return UserArtist.query.filter_by(mbid=mbid).delete()
 

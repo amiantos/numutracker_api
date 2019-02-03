@@ -1,6 +1,6 @@
 from backend.repo import Repo
 from backend.artists import ArtistProcessing
-from tests.model_factories import UserFactory, UserArtistFactory
+from tests.model_factories import ArtistFactory, UserFactory, UserArtistFactory
 
 from .test_api import BaseTestCase
 
@@ -43,7 +43,17 @@ class TestArtists(BaseTestCase):
         assert artist.date_updated is not None
 
     def test_replace_artist_with_followers(self):
-        pass
+        user_artist = UserArtistFactory(user=self.user)
+        self.repo.save(user_artist)
+        artist_mbid = user_artist.artist.mbid
+
+        new_artist = ArtistFactory()
+
+        self.artist_processing.replace_artist(user_artist.artist, new_artist)
+
+        user_artists = self.repo.get_user_artists_by_user_id(self.user.id)
+        assert user_artists[0].name == new_artist.name
+        assert user_artists[0].mbid != artist_mbid
 
     def test_delete_artist_with_followers(self):
         user_artist = UserArtistFactory(user=self.user)

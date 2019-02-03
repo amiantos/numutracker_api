@@ -105,8 +105,6 @@ class ArtistProcessing:
         if mb_artist:
             artist = self._update_artist_data(artist, mb_artist)
 
-        # TODO: - Update releases
-
         return artist
 
     def _update_artist_data(self, artist, mb_artist):
@@ -142,13 +140,22 @@ class ArtistProcessing:
     # ------------------------------------
 
     def replace_artist(self, artist, new_artist):
-        # TODO: - Update releases
+        user_artists = self.repo.get_user_artists_by_mbid(artist.mbid)
+        for user_artist in user_artists:
+            new_user_artist = self.repo.get_user_artist(
+                user_artist.user_id, new_artist.mbid
+            )
+            if new_user_artist:
+                continue
 
-        # Update all user artists to the new artist
+            user_artist.mbid = new_artist.mbid
+            user_artist.name = new_artist.name
+            user_artist.sort_name = new_artist.sort_name
+            self.repo.save(user_artist)
+        self.repo.commit()
 
         # Delete old artist
-
-        pass
+        self.delete_artist(artist)
 
     # ------------------------------------
     # Delete

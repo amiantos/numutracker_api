@@ -14,9 +14,11 @@ def import_artists():
     print("Importing artists from V2")
 
     while processing is True:
-        uri = "https://numutracker.com/v2/json.php?all_artists"
-        +"&key={}&limit={}&offset={}".format(
-            numu_app.config.get("NUMU_V2_API_KEY"), limit, offset
+        uri = (
+            "https://numutracker.com/v2/json.php?all_artists"
+            + "&key={}&limit={}&offset={}".format(
+                numu_app.config.get("NUMU_V2_API_KEY"), limit, offset
+            )
         )
         data = grab_json(uri)
         if not data:

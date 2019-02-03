@@ -7,6 +7,7 @@ from backend.models import (
     Artist as ArtistModel,
     User as UserModel,
     UserArtist as UserArtistModel,
+    ArtistImport as ArtistImportModel,
 )
 from numu import db, bcrypt
 
@@ -68,3 +69,18 @@ class UserArtistFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     user = factory.SubFactory(UserFactory)
     artist = factory.SubFactory(ArtistFactory)
+
+
+class ArtistImportFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = ArtistImportModel
+        sqlalchemy_session = db.session
+
+    user_id = 0
+    import_name = factory.Faker("name")
+    import_mbid = factory.fuzzy.FuzzyAttribute(lambda: utils.uuid())
+    import_method = "factory"
+    found_mbid = None
+
+    date_added = utils.now()
+    date_checked = None

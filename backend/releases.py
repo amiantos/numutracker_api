@@ -1,6 +1,6 @@
 from sqlalchemy.sql import func
 
-from backend.artists import ArtistProcessing
+from backend.artists import ArtistProcessor
 from backend import musicbrainz
 from backend.models import Release, UserRelease
 from backend.repo import Repo
@@ -12,12 +12,12 @@ class NotFoundError(Exception):
     pass
 
 
-class ReleaseProcessing:
+class ReleaseProcessor:
     def __init__(self, repo=None, mbz=None):
         self.repo = repo or Repo()
         self.mbz = mbz or musicbrainz
         self.logger = numu_app.logger
-        self.artist_processor = ArtistProcessing(repo=self.repo, mbz=self.mbz)
+        self.artist_processor = ArtistProcessor(repo=self.repo, mbz=self.mbz)
 
     # ------------------------------------
     # Add

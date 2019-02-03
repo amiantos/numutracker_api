@@ -11,7 +11,7 @@ class NotFoundError(Exception):
     pass
 
 
-class ArtistProcessing:
+class ArtistProcessor:
     def __init__(self, repo=None, mbz=None):
         self.repo = repo or Repo()
         self.mbz = mbz or musicbrainz

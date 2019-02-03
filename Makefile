@@ -5,16 +5,24 @@ down:
 	docker-compose down
 
 test:
+ifdef t
+	docker-compose run --user=root --rm api pytest -k $(t)
+else
 	docker-compose run --user=root --rm api pytest
+endif
+
+test-debug:
+ifdef t
+	docker-compose run --user=root --rm api pytest --pdb -k $(t)
+else
+	docker-compose run --user=root --rm api pytest --pdb
+endif
 
 test-coverage:
 	docker-compose run --user=root --rm api pytest --cov=backend
 
 test-coverage-lines:
 	docker-compose run --user=root --rm api pytest --cov-report term-missing --cov=backend
-
-test-debug:
-	docker-compose run --user=root --rm api pytest --pdb
 
 shell:
 	docker-compose run --rm api bash -c "flask shell"

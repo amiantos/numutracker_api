@@ -1,10 +1,11 @@
 from numu import app as numu_app
-from backend.image_processing import scan_artist_art, scan_release_art
+from backend.images import scan_artist_art, scan_release_art
 import simpleflock
 
 
 @numu_app.cli.command()
 def check_art():
+    """Check for artist and release art, and save to storage."""
     try:
         with simpleflock.SimpleFlock("check-art.lock", timeout=1):
             run_command()

@@ -5,6 +5,7 @@ import simpleflock
 
 @numu_app.cli.command()
 def user_processing():
+    """Perform quick check of user imports."""
     try:
         with simpleflock.SimpleFlock("user-processing.lock", timeout=1):
             run_command()
@@ -13,7 +14,4 @@ def user_processing():
 
 
 def run_command():
-    """This command ensures that all users have the most updated releases."""
-
-    # Scan artist imports
     ImportProcessor().import_user_artists(check_musicbrainz=False)

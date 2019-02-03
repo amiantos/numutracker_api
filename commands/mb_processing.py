@@ -14,6 +14,7 @@ from backend.data_processing import update_numu_artist_from_mb
 
 @numu_app.cli.command()
 def mb_processing():
+    """Handle all processing tasks related to musicbrainz."""
     try:
         with simpleflock.SimpleFlock("mb-processing.lock", timeout=1):
             run_command()

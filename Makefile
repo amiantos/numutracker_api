@@ -19,10 +19,10 @@ else
 endif
 
 test-coverage:
-	docker-compose run --user=root --rm api pytest --cov=backend
+	docker-compose run --user=root --rm api pytest --cov=backend --cov=rest
 
 test-coverage-lines:
-	docker-compose run --user=root --rm api pytest --cov-report term-missing --cov=backend
+	docker-compose run --user=root --rm api pytest --cov-report term-missing --cov=backend --cov=rest
 
 shell:
 	docker-compose run --rm api bash -c "flask shell"

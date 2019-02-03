@@ -100,7 +100,7 @@ def import_lastfm_artists():
     if limit is None or limit > 500:
         limit = 500
 
-    result = import_processing.import_from_lastfm(user, username, limit, period)
+    result = ImportProcessor().import_from_lastfm(user.id, username, limit, period)
 
     return response.success({"artists_imported": result})
 

@@ -7,6 +7,7 @@ from backend.models import ArtistImport
 from backend.artists import ArtistProcessor
 from backend.releases import ReleaseProcessor
 from backend.repo import Repo
+from backend import utils
 from numu import app as numu_app
 
 
@@ -18,11 +19,37 @@ class ImportProcessor:
         self.artist_processor = ArtistProcessor(repo=repo, mbz=self.mbz)
         self.release_processor = ReleaseProcessor(repo=repo, mbz=self.mbz)
 
-    def save_imports(self, user_id, artists, import_method):
+    def import_from_lastfm(
+        self, user_id, lastfm_username, limit=500, period="overall", page=1
+    ):
+        """Download artists from a LastFM account into the user's library.
+
+        Period options: overall | 7day | 1month | 3month | 6month | 12month"""
+
+        data = utils.grab_json(
+            "http://ws.audioscrobbler.com/2.0/?method=user.gettopartists"
+            + "&user={}&limit={}&api_key={}&period={}&page={}&format=json".format(
+                lastfm_username,
+                limit,
+                numu_app.config.get("LAST_FM_API_KEY"),
+                period,
+                page,
+            )
+        )
+        artists_list = []
+        for artist in data.get("topartists", {}).get("artist"):
+            artists_list.append({"name": artist["name"], "mbid": artist["mbid"]})
+
+        return self.save_imports(user_id, artists_list, import_method="lastfm")
+
+    def save_imports(self, user_id, artists_list, import_method):
         validated_artists = []
-        for artist in artists:
+        for artist in artists_list:
             try:
-                validated_artists.append(str(artist))
+                artist_name = str(artist["name"]) if artist.get("name") else None
+                artist_mbid = str(artist["mbid"]) if artist.get("mbid") else None
+                if artist_name or artist_mbid:
+                    validated_artists.append({"name": artist_name, "mbid": artist_mbid})
             except ValueError:
                 pass
 
@@ -32,12 +59,14 @@ class ImportProcessor:
         artists_added = 0
 
         for artist in validated_artists:
-            found_import = self.repo.get_artist_import(user_id, artist)
+            found_import = self.repo.get_artist_import(
+                user_id, name=artist["name"], mbid=artist["mbid"]
+            )
             if found_import is None:
                 new_import = ArtistImport(
                     user_id=user_id,
-                    import_name=artist,
-                    import_mbid=None,
+                    import_name=artist["name"],
+                    import_mbid=artist["mbid"],
                     import_method=import_method,
                 )
                 self.repo.save(new_import)

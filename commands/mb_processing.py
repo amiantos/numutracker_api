@@ -4,7 +4,9 @@ from datetime import datetime, timedelta
 from sqlalchemy import or_
 
 import simpleflock
-from backend.import_processing import scan_imported_artists
+
+# from backend.import_processing import scan_imported_artists
+from backend.user_artists import ImportProcessor
 from backend.models import Artist
 from numu import app as numu_app
 from backend.data_processing import update_numu_artist_from_mb
@@ -26,7 +28,7 @@ def run_command():
     start = time.time()
 
     # Scan user imports
-    scan_imported_artists(True)
+    ImportProcessor().import_user_artists(check_musicbrainz=True)
 
     # Scan artists
     artists = (

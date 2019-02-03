@@ -24,7 +24,7 @@ class TestUserArtists(BaseTestCase):
     # ------------------------------------
 
     def test_save_imports(self):
-        artists = ["Eels", "Nine Inch Nails", "Spoon"]
+        artists = [{"name": "Eels"}, {"name": "Nine Inch Nails"}, {"name": "Spoon"}]
         artists_added = self.import_processor.save_imports(
             self.user.id, artists, "test"
         )
@@ -46,7 +46,7 @@ class TestUserArtists(BaseTestCase):
             import_mbid="b7ffd2af-418f-4be2-bdd1-22f8b48613da",
         )
         self.repo.save(artist_import)
-        artists = ["Nine Inch Nails"]
+        artists = [{"name": "Nine Inch Nails"}]
         artists_added = self.import_processor.save_imports(
             self.user.id, artists, "test"
         )

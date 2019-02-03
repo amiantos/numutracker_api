@@ -106,8 +106,17 @@ class Repo:
             ArtistImport.date_checked.is_(None),
         ).all()
 
-    def get_artist_import(self, user_id, name):
-        return ArtistImport.query.filter_by(user_id=user_id, import_name=name).first()
+    def get_artist_import(self, user_id, name=None, mbid=None):
+        artist_import = None
+        if mbid:
+            artist_import = ArtistImport.query.filter_by(
+                user_id=user_id, import_mbid=mbid
+            ).first()
+        if name and artist_import is None:
+            artist_import = ArtistImport.query.filter_by(
+                user_id=user_id, import_name=name
+            ).first()
+        return artist_import
 
     def get_artist_imports(self, date_filter, limit):
         return (

@@ -1,5 +1,5 @@
 from numu import bcrypt, db
-from backend.models import User, Artist, Release, ArtistAka, UserRelease
+from backend.models import User, Artist, Release, ArtistAka, UserRelease, UserArtist
 from sqlalchemy.orm import joinedload
 
 
@@ -13,6 +13,13 @@ class Repo:
     def save(self, *argv):
         for obj in argv:
             db.session.add(obj)
+
+        if self._autocommit:
+            self.commit()
+
+    def delete(self, *argv):
+        for obj in argv:
+            db.session.delete(obj)
 
         if self._autocommit:
             self.commit()
@@ -35,6 +42,15 @@ class Repo:
         else:
             artist = Artist.query.filter(Artist.name.ilike(name)).first()
         return artist
+
+    def get_user_artists_by_mbid(self, mbid):
+        return UserArtist.query.filter_by(mbid=mbid).all()
+
+    def get_user_artists_by_user_id(self, user_id):
+        return UserArtist.query.filter_by(user_id=user_id).all()
+
+    def delete_user_artists_by_mbid(self, mbid):
+        return UserArtist.query.filter_by(mbid=mbid).delete()
 
 
 # --------------------------------------

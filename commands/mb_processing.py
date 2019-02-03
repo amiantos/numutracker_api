@@ -9,7 +9,7 @@ import simpleflock
 from backend.user_artists import ImportProcessor
 from backend.models import Artist
 from numu import app as numu_app
-from backend.data_processing import update_numu_artist_from_mb
+from backend.artists import ArtistProcessor
 
 
 @numu_app.cli.command()
@@ -45,7 +45,7 @@ def run_command():
         current_time = time.time()
         if (current_time - start) / 60 < 14:
             numu_app.logger.info("Updating Artist: {}".format(artist))
-            updated_artist = update_numu_artist_from_mb(artist)
+            updated_artist = ArtistProcessor().update_artist(artist)
             numu_app.logger.info("Updated Artist: {}".format(updated_artist))
         else:
             numu_app.logger.error("Hit maximum execution time, aborting...")

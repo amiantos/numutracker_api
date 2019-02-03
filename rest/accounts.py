@@ -1,14 +1,13 @@
 from flask import g, request
 
 import response
-from backend import data_processing, repo, musicbrainz
-from backend.utils import grab_json
-from backend.repo import Repo
-from numu import app as numu_app
-from numu import auth, db
-from backend.user_artists import ImportProcessor
+from backend import repo
 from backend.releases import ReleaseProcessor
-from backend.artists import ArtistProcessor
+from backend.repo import Repo
+from backend.user_artists import ImportProcessor
+from backend.utils import grab_json
+from numu import app as numu_app
+from numu import auth
 
 from . import app
 

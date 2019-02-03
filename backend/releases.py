@@ -106,22 +106,8 @@ class ReleaseProcessor:
 
         return release
 
-    def add_user_release(self, release, user_artist=None, user_id=None):
-        user_artist_uuid = None
+    def add_user_release(self, release, user_id):
         notify = False
-
-        if user_artist is None:
-            for artist in release.artists:
-                user_artist = self.repo.get_user_artist(
-                    user_id=user_id, mbid=artist.mbid
-                )
-                if user_artist:
-                    break
-
-        if user_artist:
-            user_id = user_artist.user_id
-            user_artist_uuid = user_artist.uuid
-
         user_release = self.repo.get_user_release(user_id, release.mbid)
         if user_release is None:
             user_release = UserRelease(
@@ -130,7 +116,6 @@ class ReleaseProcessor:
             notify = True
             self.logger.info("New user release created {}".format(user_release))
 
-        user_release.user_artist_uuid = user_artist_uuid
         user_release.title = release.title
         user_release.artist_names = release.artist_names
         user_release.type = release.type
@@ -140,6 +125,11 @@ class ReleaseProcessor:
         user_release.spotify_link = release.spotify_link
         user_release.date_updated = release.date_updated
 
+        for artist in release.artists:
+            user_artist = self.repo.get_user_artist(user_id, artist.mbid)
+            if user_artist:
+                user_release.user_artists.append(user_artist)
+
         self.repo.save(user_release)
         self.repo.commit()
 
@@ -148,7 +138,7 @@ class ReleaseProcessor:
     def add_user_releases(self, user_artist, releases, notifications):
         for release in releases:
             user_release, notify = self.add_user_release(
-                release, user_artist=user_artist
+                release, user_id=user_artist.user_id
             )
             if notifications and notify:
                 # TODO: Create notification

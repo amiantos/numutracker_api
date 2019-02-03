@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.sql import func
 
 from backend import musicbrainz
-from backend.models import ArtistImport
+from backend.models import UserArtistImport
 from backend.artists import ArtistProcessor
 from backend.releases import ReleaseProcessor
 from backend.repo import Repo
@@ -63,7 +63,7 @@ class ImportProcessor:
                 user_id, name=artist["name"], mbid=artist["mbid"]
             )
             if found_import is None:
-                new_import = ArtistImport(
+                new_import = UserArtistImport(
                     user_id=user_id,
                     import_name=artist["name"],
                     import_mbid=artist["mbid"],
@@ -131,7 +131,7 @@ class ImportProcessor:
         return found_artist
 
     def _create_user_artist(self, user_id, import_method, artist):
-        user_artist = self.artist_processor.add_user_artist(
+        user_artist = self.artist_processor.add_or_update_user_artist(
             user_id, artist, import_method
         )
         self.release_processor.update_user_releases(artist, user_artist, False)

@@ -73,11 +73,13 @@ def user_releases(user_release):
         "artists": [artist(x) for x in user_release.release.artists],
         "user_data": {
             "uuid": user_release.uuid,
-            "user_artist_uuid": user_release.user_artist_uuid,
             "listened": user_release.listened,
             "date_listened": user_release.date_listened,
             "date_added": user_release.date_added,
             "date_updated": user_release.date_updated,
+            "user_artist_uuids": [
+                user_artist.uuid for user_artist in user_release.user_artists
+            ],
         },
     }
     return serialized

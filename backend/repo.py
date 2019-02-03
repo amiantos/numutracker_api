@@ -7,7 +7,8 @@ from backend.models import (
     ArtistAka,
     UserRelease,
     UserArtist,
-    ArtistImport,
+    UserArtistImport,
+    ArtistRelease,
 )
 from sqlalchemy.orm import joinedload
 
@@ -86,6 +87,13 @@ class Repo:
         )
 
     # -----------------------------------
+    # Artist Release
+    # -----------------------------------
+
+    def get_artist_releases(self, mbid):
+        return ArtistRelease.query.filter_by(artist_mbid=mbid).all()
+
+    # -----------------------------------
     # User Release
     # -----------------------------------
 
@@ -93,43 +101,45 @@ class Repo:
         return UserRelease.query.filter_by(user_id=user_id, mbid=mbid).first()
 
     def get_user_releases_for_artist(self, user_id, mbid):
-        return UserArtist.query.filter_by(user_id=user_id, mbid=mbid).first().releases
+        return (
+            UserArtist.query.filter_by(user_id=user_id, mbid=mbid).first().user_releases
+        )
 
     # -----------------------------------
     # Artist Import
     # -----------------------------------
 
     def get_user_artist_imports(self, user_id):
-        return ArtistImport.query.filter(
-            ArtistImport.user_id == user_id,
-            ArtistImport.found_mbid.is_(None),
-            ArtistImport.date_checked.is_(None),
+        return UserArtistImport.query.filter(
+            UserArtistImport.user_id == user_id,
+            UserArtistImport.found_mbid.is_(None),
+            UserArtistImport.date_checked.is_(None),
         ).all()
 
     def get_artist_import(self, user_id, name=None, mbid=None):
         artist_import = None
         if mbid:
-            artist_import = ArtistImport.query.filter_by(
+            artist_import = UserArtistImport.query.filter_by(
                 user_id=user_id, import_mbid=mbid
             ).first()
         if name and artist_import is None:
-            artist_import = ArtistImport.query.filter_by(
+            artist_import = UserArtistImport.query.filter_by(
                 user_id=user_id, import_name=name
             ).first()
         return artist_import
 
     def get_artist_imports(self, date_filter, limit):
         return (
-            ArtistImport.query.filter(
-                ArtistImport.found_mbid.is_(None),
+            UserArtistImport.query.filter(
+                UserArtistImport.found_mbid.is_(None),
                 or_(
-                    ArtistImport.date_checked < date_filter,
-                    ArtistImport.date_checked.is_(None),
+                    UserArtistImport.date_checked < date_filter,
+                    UserArtistImport.date_checked.is_(None),
                 ),
             )
             .order_by(
-                ArtistImport.date_checked.asc().nullsfirst(),
-                ArtistImport.date_added.desc(),
+                UserArtistImport.date_checked.asc().nullsfirst(),
+                UserArtistImport.date_added.desc(),
             )
             .limit(limit)
             .all()

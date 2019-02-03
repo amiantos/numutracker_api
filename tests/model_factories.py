@@ -7,7 +7,7 @@ from backend.models import (
     Artist as ArtistModel,
     User as UserModel,
     UserArtist as UserArtistModel,
-    ArtistImport as ArtistImportModel,
+    UserArtistImport as ArtistImportModel,
 )
 from numu import db, bcrypt
 

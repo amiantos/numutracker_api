@@ -109,6 +109,7 @@ class ArtistProcessor:
         if mb_artist["id"] != artist.mbid:
             new_artist = self._save_mb_artist(mb_artist)
             self.replace_artist(artist, new_artist)
+            artist = new_artist
 
         if mb_artist:
             artist = self._update_artist_data(artist, mb_artist)
@@ -148,6 +149,14 @@ class ArtistProcessor:
     # ------------------------------------
 
     def replace_artist(self, artist, new_artist):
+        # Update all artist_releases
+        artist_releases = self.repo.get_artist_releases(artist.mbid)
+        for artist_release in artist_releases:
+            artist_release.artist_mbid = new_artist.mbid
+            self.repo.save(artist_release)
+        self.repo.commit()
+
+        # Update all user_artists
         user_artists = self.repo.get_user_artists_by_mbid(artist.mbid)
         for user_artist in user_artists:
             new_user_artist = self.repo.get_user_artist(
@@ -174,10 +183,10 @@ class ArtistProcessor:
         self.repo.commit()
 
     # ------------------------------------
-    # User Artist: Add
+    # User Artist
     # ------------------------------------
 
-    def add_user_artist(self, user_id, artist, import_method):
+    def add_or_update_user_artist(self, user_id, artist, import_method):
         user_artist = self.repo.get_user_artist(user_id, artist.mbid)
         if user_artist is None:
             user_artist = UserArtist(
@@ -196,4 +205,3 @@ class ArtistProcessor:
         self.repo.commit()
 
         return user_artist
-

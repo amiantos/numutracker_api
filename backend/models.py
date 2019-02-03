@@ -127,7 +127,7 @@ class UserArtist(db.Model):
 
     user = relationship("User", lazy=True, uselist=False)
     artist = relationship("Artist", lazy=False)
-    releases = relationship("UserRelease", lazy=True)
+    user_releases = db.relationship("UserRelease", secondary="user_artist_release", lazy=False)
 
     def __repr__(self):
         return "<UserArtist {} - {}>".format(self.user_id, self.mbid)
@@ -150,6 +150,33 @@ class ArtistRelease(db.Model):
         String(36),
         ForeignKey(
             "release.mbid",
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED",
+        ),
+        primary_key=True,
+        index=True,
+    )
+
+
+class UserArtistRelease(db.Model):
+    user_artist_uuid = Column(
+        String(),
+        ForeignKey(
+            "user_artist.uuid",
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            deferrable=True,
+            initially="DEFERRED",
+        ),
+        primary_key=True,
+        index=True,
+    )
+    user_release_uuid = Column(
+        String(),
+        ForeignKey(
+            "user_release.uuid",
             onupdate="CASCADE",
             ondelete="CASCADE",
             deferrable=True,
@@ -186,16 +213,6 @@ class Release(db.Model):
 
 class UserRelease(db.Model):
     uuid = Column(String(), unique=True, index=True, nullable=False)
-    user_artist_uuid = Column(
-        String(),
-        ForeignKey(
-            "user_artist.uuid",
-            onupdate="CASCADE",
-            ondelete="CASCADE"
-        ),
-        index=True,
-        nullable=True
-    )
     user_id = Column(
         Integer,
         ForeignKey(
@@ -239,6 +256,8 @@ class UserRelease(db.Model):
 
     release = relationship("Release", lazy=False)
 
+    user_artists = db.relationship("UserArtist", secondary="user_artist_release", lazy=False)
+
     def __repr__(self):
         return "<UserRelease {}>".format(self.uuid)
 
@@ -259,7 +278,7 @@ Index(
 )
 
 
-class ArtistImport(db.Model):
+class UserArtistImport(db.Model):
     user_id = Column(
         Integer,
         ForeignKey(
@@ -291,10 +310,10 @@ class ArtistImport(db.Model):
     date_checked = Column(DateTime(True), nullable=True, default=None)
 
     def __repr__(self):
-        return "<ArtistImport {} - {}>".format(self.user_id, self.import_name)
+        return "<UserArtistImport {} - {}>".format(self.user_id, self.import_name)
 
 
-class UserNotifications(db.Model):
+class UserNotification(db.Model):
     user_id = Column(
         Integer,
         ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"),

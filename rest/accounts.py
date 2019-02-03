@@ -68,8 +68,6 @@ def import_artists_endpoint():
         return response.error("Missing import_method")
 
     saved_imports = import_processor.save_imports(g.user.id, artists, import_method)
-    if saved_imports > 0:
-        import_processor.import_user_artists(check_musicbrainz=False, user_id=g.user.id)
 
     return response.success({"artists_imported": saved_imports})
 
@@ -103,8 +101,6 @@ def import_lastfm_artists():
         limit = 500
 
     result = import_processor.import_from_lastfm(user.id, username, limit, period)
-    if result > 0:
-        import_processor.import_user_artists(check_musicbrainz=False, user_id=user.id)
 
     return response.success({"artists_imported": result})
 
@@ -148,8 +144,6 @@ def import_numu_v2():
     artists = data.get("artists")
     if artists:
         imported = import_processor.save_imports(user.id, artists, "v2")
-        import_processor.import_user_artists(check_musicbrainz=False, user_id=user.id)
-
         result["artists_imported"] = imported
 
     listens = data.get("listens")

@@ -108,10 +108,19 @@ class ReleaseProcessor:
 
     def add_user_release(self, release, user_artist=None, user_id=None):
         user_artist_uuid = None
+        notify = False
+
+        if user_artist is None:
+            for artist in release.artists:
+                user_artist = self.repo.get_user_artist(
+                    user_id=user_id, mbid=artist.mbid
+                )
+                if user_artist:
+                    break
+
         if user_artist:
             user_id = user_artist.user_id
             user_artist_uuid = user_artist.uuid
-        notify = False
 
         user_release = self.repo.get_user_release(user_id, release.mbid)
         if user_release is None:
@@ -138,7 +147,9 @@ class ReleaseProcessor:
 
     def add_user_releases(self, user_artist, releases, notifications):
         for release in releases:
-            user_release, notify = self.add_user_release(user_artist, release)
+            user_release, notify = self.add_user_release(
+                release, user_artist=user_artist
+            )
             if notifications and notify:
                 # TODO: Create notification
                 pass

@@ -80,18 +80,16 @@ def artist_release_with_user(tuple):
         "user_data": {},
     }
     if user_release:
-        serialized["user_data"] = (
-            {
-                "uuid": user_release.uuid,
-                "listened": user_release.listened,
-                "date_listened": user_release.date_listened,
-                "date_added": user_release.date_added,
-                "date_updated": user_release.date_updated,
-                "user_artist_uuids": [
-                    user_artist.uuid for user_artist in user_release.user_artists
-                ],
-            },
-        )
+        serialized["user_data"] = {
+            "uuid": user_release.uuid,
+            "listened": user_release.listened,
+            "date_listened": user_release.date_listened,
+            "date_added": user_release.date_added,
+            "date_updated": user_release.date_updated,
+            "user_artist_uuids": [
+                user_artist.uuid for user_artist in user_release.user_artists
+            ],
+        }
     return serialized
 
 

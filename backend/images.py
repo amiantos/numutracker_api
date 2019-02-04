@@ -80,7 +80,7 @@ def get_artist_art(artist):
             except Exception as e:
                 numu_app.logger.error("Put artist image failed: {}".format(e))
                 return False
-    numu_app.logger.error("No artist art found.")
+    numu_app.logger.info("No artist art found.")
     return False
 
 
@@ -110,7 +110,7 @@ def get_release_art(release):
             except IOError as e:
                 numu_app.logger.error("Put release image failed: {}".format(e))
                 return False
-    numu_app.logger.error("No release art found.")
+    numu_app.logger.info("No release art found.")
     return False
 
 

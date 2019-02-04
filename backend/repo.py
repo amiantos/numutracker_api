@@ -101,9 +101,10 @@ class Repo:
         return UserRelease.query.filter_by(user_id=user_id, mbid=mbid).first()
 
     def get_user_releases_for_artist(self, user_id, mbid):
-        return (
-            UserArtist.query.filter_by(user_id=user_id, mbid=mbid).first().user_releases
-        )
+        user_artist = UserArtist.query.filter_by(user_id=user_id, mbid=mbid).first()
+        if user_artist:
+            return user_artist.user_releases
+        return None
 
     # -----------------------------------
     # Artist Import

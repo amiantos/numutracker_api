@@ -5,9 +5,11 @@ import factory
 import factory.fuzzy
 from backend.models import (
     Artist as ArtistModel,
+    Release as ReleaseModel,
     User as UserModel,
     UserArtist as UserArtistModel,
-    UserArtistImport as ArtistImportModel,
+    UserArtistImport as UserArtistImportModel,
+    UserRelease as UserReleaseModel,
 )
 from numu import db, bcrypt
 
@@ -41,7 +43,7 @@ class ArtistFactory(factory.alchemy.SQLAlchemyModelFactory):
     mbid = factory.fuzzy.FuzzyAttribute(lambda: utils.uuid())
     name = factory.Faker("name")
     sort_name = factory.SelfAttribute("name")
-    disambiguation = factory.SelfAttribute("name")
+    disambiguation = factory.fuzzy.FuzzyText(length=12)
     art = False
     date_added = utils.now()
     date_art_check = None
@@ -49,6 +51,39 @@ class ArtistFactory(factory.alchemy.SQLAlchemyModelFactory):
     date_updated = None
     apple_music_link = None
     spotify_link = None
+
+
+class ReleaseFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = ReleaseModel
+        sqlalchemy_session = db.session
+
+    mbid = factory.fuzzy.FuzzyAttribute(lambda: utils.uuid())
+    title = factory.fuzzy.FuzzyText(length=12)
+    artist_names = factory.Faker("name")
+    type = "album"
+    art = False
+    date_release = "2019-02-03"
+
+
+class UserReleaseFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = UserReleaseModel
+        sqlalchemy_session = db.session
+
+    uuid = factory.fuzzy.FuzzyAttribute(lambda: utils.uuid())
+    user_id = factory.SelfAttribute("user.id")
+    mbid = factory.SelfAttribute("release.mbid")
+    title = factory.SelfAttribute("release.title")
+    artist_names = factory.SelfAttribute("release.artist_names")
+    type = factory.SelfAttribute("release.type")
+    art = factory.SelfAttribute("release.art")
+    date_release = factory.SelfAttribute("release.date_release")
+    apple_music_link = factory.SelfAttribute("release.apple_music_link")
+    spotify_link = factory.SelfAttribute("release.spotify_link")
+
+    user = factory.SubFactory(UserFactory)
+    release = factory.SubFactory(ReleaseFactory)
 
 
 class UserArtistFactory(factory.alchemy.SQLAlchemyModelFactory):
@@ -73,7 +108,7 @@ class UserArtistFactory(factory.alchemy.SQLAlchemyModelFactory):
 
 class ArtistImportFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
-        model = ArtistImportModel
+        model = UserArtistImportModel
         sqlalchemy_session = db.session
 
     user_id = 0

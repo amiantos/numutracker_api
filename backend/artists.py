@@ -94,7 +94,9 @@ class ArtistProcessor:
 
     def update_artist(self, artist):
         mb_result = self.mbz.get_artist(artist.mbid)
+        return self._update_artist(artist, mb_result)
 
+    def _update_artist(self, artist, mb_result):
         try:
             mb_artist = self._extract_artist_from_mb_result(mb_result)
         except NotFoundError as e:
@@ -102,6 +104,7 @@ class ArtistProcessor:
                 "Artist {} has been removed from Musicbrainz".format(artist)
             )
             self.delete_artist(artist)
+            return None
         except Exception as e:
             self.logger.error("Unknown Musicbrainz Error Occurred")
             raise e

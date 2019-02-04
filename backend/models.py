@@ -255,6 +255,7 @@ class UserRelease(db.Model):
     date_listened = Column(DateTime(True), nullable=True, default=None)
 
     release = relationship("Release", lazy=False)
+    user = relationship("User", lazy=True, uselist=False)
 
     user_artists = db.relationship("UserArtist", secondary="user_artist_release", lazy=False)
 

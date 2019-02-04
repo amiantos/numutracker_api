@@ -1,8 +1,9 @@
 """Serialize models for API return."""
 from backend.models import Artist, Release, UserRelease, ArtistRelease
-from numu import db
+from numu import db, app as numu_app
 from backend import repo
 from sqlalchemy.orm import joinedload
+import json
 
 
 def serializer(object, type):
@@ -10,6 +11,8 @@ def serializer(object, type):
         return user_releases(object)
     if type == "user_artist":
         return user_artist(object)
+    if type == "artist_release_with_user":
+        return artist_release_with_user(object)
 
 
 def get_art_urls(object):
@@ -54,6 +57,42 @@ def get_art_urls(object):
                 object.mbid
             ),
         }
+
+
+def artist_release_with_user(tuple):
+    release = tuple[1]
+    user_release = tuple[2]
+
+    serialized = {
+        "mbid": release.mbid,
+        "title": release.title,
+        "artist_names": release.artist_names,
+        "type": release.type,
+        "art": get_art_urls(release),
+        "date_release": release.date_release,
+        "date_added": release.date_added,
+        "date_updated": release.date_updated,
+        "links": {
+            "apple_music": release.apple_music_link,
+            "spotify": release.spotify_link,
+        },
+        "artists": [artist(x) for x in release.artists],
+        "user_data": {},
+    }
+    if user_release:
+        serialized["user_data"] = (
+            {
+                "uuid": user_release.uuid,
+                "listened": user_release.listened,
+                "date_listened": user_release.date_listened,
+                "date_added": user_release.date_added,
+                "date_updated": user_release.date_updated,
+                "user_artist_uuids": [
+                    user_artist.uuid for user_artist in user_release.user_artists
+                ],
+            },
+        )
+    return serialized
 
 
 def user_releases(user_release):

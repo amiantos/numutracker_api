@@ -10,6 +10,7 @@ from backend.user_artists import ImportProcessor
 from backend.models import Artist
 from numu import app as numu_app
 from backend.artists import ArtistProcessor
+from backend.releases import ReleaseProcessor
 
 
 @numu_app.cli.command()
@@ -47,6 +48,10 @@ def run_command():
             numu_app.logger.info("Updating Artist: {}".format(artist))
             updated_artist = ArtistProcessor().update_artist(artist)
             numu_app.logger.info("Updated Artist: {}".format(updated_artist))
+            if updated_artist:
+                releases_added = ReleaseProcessor().add_releases(updated_artist)
+                numu_app.logger.info("Added Releases: {}".format(releases_added))
+
         else:
             numu_app.logger.error("Hit maximum execution time, aborting...")
             break

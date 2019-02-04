@@ -132,10 +132,15 @@ class ArtistProcessor:
             artist.sort_name = mb_artist["sort-name"]
             artist.disambiguation = mb_artist.get("disambiguation", "")
             artist.date_updated = func.now()
+            artist.date_checked = func.now()
             self.repo.save(artist)
             self.repo.commit()
 
             self.update_user_artists(artist)
+        else:
+            artist.date_checked = func.now()
+            self.repo.save(artist)
+            self.repo.commit()
 
         return artist
 

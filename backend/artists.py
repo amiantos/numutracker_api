@@ -100,7 +100,7 @@ class ArtistProcessor:
         try:
             mb_artist = self._extract_artist_from_mb_result(mb_result)
         except NotFoundError as e:
-            self.logger.info(
+            self.logger.error(
                 "Artist {} has been removed from Musicbrainz".format(artist)
             )
             self.delete_artist(artist)

@@ -25,7 +25,7 @@ def mb_processing():
 def run_command():
     date_offset = datetime.now() - timedelta(days=14)
     limit = 200
-    numu_app.logger.info("Starting MB process...")
+    numu_app.logger.error("Starting MB process...")
     start = time.time()
 
     # Scan user imports

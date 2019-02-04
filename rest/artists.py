@@ -51,7 +51,7 @@ def user_artist_releases(mbid, page):
         .join(Release)
         .outerjoin(UserRelease)
         .filter(ArtistRelease.artist_mbid == mbid, Release.type.in_(g.user.filters))
-        .order_by(Release.date_release.asc())
+        .order_by(Release.date_release.desc())
     )
     data = paginate_query(query, page, "artist_release_with_user")
     return response.success(data)

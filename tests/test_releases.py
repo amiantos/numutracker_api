@@ -1,4 +1,10 @@
-from tests.model_factories import UserFactory, ArtistFactory, UserArtistFactory
+from tests.model_factories import (
+    UserFactory,
+    ArtistFactory,
+    UserArtistFactory,
+    ReleaseFactory,
+    UserReleaseFactory,
+)
 from backend.releases import ReleaseProcessor
 from backend.repo import Repo
 
@@ -26,6 +32,47 @@ class TestReleases(BaseTestCase):
 
         assert releases_added == 1
         assert len(user_releases) == 1
+
+    def test_update_release_with_mock(self):
+        release = ReleaseFactory(artist_names=self.artist.name)
+        release.artists.append(self.artist)
+        user_release = UserReleaseFactory(user=self.user, release=release)
+
+        self.repo.save(user_release)
+
+        mb_release = {
+            "first-release-date": "2015-01-01",
+            "title": "Random Title",
+            "artist-credit-phrase": "Tulsa",
+            "primary-type": "Album",
+            "artist-credit": [{"artist": {}}],
+        }
+
+        self.release_processor._update_release(release, mb_release)
+
+        release = self.repo.get_release_by_mbid(release.mbid)
+        assert release.title == "Random Title"
+
+        user_release = self.repo.get_user_release(self.user.id, release.mbid)
+        assert user_release.title == "Random Title"
+
+    def test_update_release_with_mock_delete(self):
+        release = ReleaseFactory(artist_names=self.artist.name)
+        release.artists.append(self.artist)
+        self.repo.save(release)
+
+        mb_release = {
+            "first-release-date": "2015-01-01",
+            "title": "Random Title",
+            "artist-credit-phrase": "Tulsa",
+            "primary-type": "Album",
+        }
+
+        self.release_processor._update_release(release, mb_release)
+
+        release = self.repo.get_release_by_mbid(release.mbid)
+
+        assert release is None
 
     def test_update_release_from_mb_with_followers_and_listeners(self):
         pass

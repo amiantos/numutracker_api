@@ -67,7 +67,7 @@ class Repo:
 
     def update_user_artists(self, where, updates):
         """
-        Update all kits matching the where filter
+        Update all user artists matching the where filter
         """
         UserArtist.query.filter_by(**where).update(updates)
 
@@ -105,6 +105,12 @@ class Repo:
         if user_artist:
             return user_artist.user_releases
         return None
+
+    def update_user_releases(self, where, updates):
+        """
+        Update all user releases matching the where filter
+        """
+        UserRelease.query.filter_by(**where).update(updates)
 
     # -----------------------------------
     # Artist Import

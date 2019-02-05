@@ -48,12 +48,11 @@ class ReleaseProcessor:
 
             release = self.repo.get_release_by_mbid(mb_release.get("id"))
             if release:
-                # TODO: Might as well update the release here
+                release = self._update_release(release, mb_release)
                 continue
 
-            if release is None:
-                self.logger.info("Release not found locally.")
-                release = self._save_mb_release(mb_release)
+            self.logger.info("Release not found locally.")
+            release = self._save_mb_release(mb_release)
 
             if release is not None:
                 releases_added.append(release.mbid)
@@ -151,8 +150,46 @@ class ReleaseProcessor:
     def update_release(self, release):
         pass
 
+    def _update_release(self, release, mb_release):
+        date_release = utils.convert_mb_release_date(
+            mb_release.get("first-release-date")
+        )
+        if date_release is None or mb_release.get("artist-credit") is None:
+            self.logger.error(
+                "Release {} - {} no longer qualifies for inclusion".format(
+                    mb_release.get("id"), mb_release.get("title")
+                )
+            )
+            self.delete_release(release)
+            return None
+
+        release.title = mb_release.get("title")
+        release.type = utils.get_release_type(mb_release)
+        release.date_release = date_release
+        release.artist_names = mb_release.get("artist-credit-phrase")
+        release.date_updated = func.now()
+
+        self.repo.save(release)
+        self.repo.commit()
+
+        self.update_user_release(release)
+
+        return release
+
     def update_user_release(self, release):
-        pass
+        self.repo.update_user_releases(
+            {"mbid": release.mbid},
+            {
+                "title": release.title,
+                "artist_names": release.artist_names,
+                "type": release.type,
+                "art": release.art,
+                "date_release": release.date_release,
+                "date_updated": release.date_updated,
+                "date_checked": release.date_checked,
+            },
+        )
+        self.repo.commit()
 
     def update_user_releases(self, artist, user_artist=None, notifications=True):
         releases = self.repo.get_releases_by_artist_mbid(artist.mbid)
@@ -162,3 +199,11 @@ class ReleaseProcessor:
             user_artists = self.repo.get_user_artists_by_mbid(artist.mbid)
             for user_artist in user_artists:
                 self.add_user_releases(user_artist, releases, notifications)
+
+    # ------------------------------------
+    # Delete
+    # ------------------------------------
+
+    def delete_release(self, release):
+        self.repo.delete(release)
+        self.repo.commit()

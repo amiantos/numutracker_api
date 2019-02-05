@@ -140,11 +140,14 @@ class ArtistProcessor:
         return artist
 
     def update_user_artists(self, artist):
-        user_artists = self.repo.get_user_artists_by_mbid(artist.mbid)
-        for user_artist in user_artists:
-            user_artist.name = artist.name
-            user_artist.sort_name = artist.sort_name
-            self.repo.save(user_artist)
+        self.repo.update_user_artists(
+            {"mbid": artist.mbid},
+            {
+                "name": artist.name,
+                "sort_name": artist.sort_name,
+                "date_updated": artist.date_updated,
+            },
+        )
         self.repo.commit()
 
     # ------------------------------------

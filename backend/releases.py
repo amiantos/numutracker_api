@@ -148,7 +148,17 @@ class ReleaseProcessor:
     # ------------------------------------
 
     def update_release(self, release):
-        pass
+        mb_result = self.mbz.get_release(release.mbid)
+
+        if mb_result.get("status") == 404:
+            self.logger.error("Release no longer found in MB: {}".format(release))
+            return self.delete_release(release)
+
+        if mb_result.get("status") == 200:
+            mb_release = mb_result.get("release")
+            return self._update_release(release, mb_release)
+
+        return release
 
     def _update_release(self, release, mb_release):
         date_release = utils.convert_mb_release_date(
@@ -160,14 +170,14 @@ class ReleaseProcessor:
                     mb_release.get("id"), mb_release.get("title")
                 )
             )
-            self.delete_release(release)
-            return None
+            return self.delete_release(release)
 
         release.title = mb_release.get("title")
         release.type = utils.get_release_type(mb_release)
         release.date_release = date_release
         release.artist_names = mb_release.get("artist-credit-phrase")
         release.date_updated = func.now()
+        release.date_checked = func.now()
 
         self.repo.save(release)
         self.repo.commit()
@@ -207,3 +217,4 @@ class ReleaseProcessor:
     def delete_release(self, release):
         self.repo.delete(release)
         self.repo.commit()
+        return None

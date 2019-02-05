@@ -7,7 +7,7 @@ import simpleflock
 
 # from backend.import_processing import scan_imported_artists
 from backend.user_artists import ImportProcessor
-from backend.models import Artist
+from backend.models import Artist, Release
 from numu import app as numu_app
 from backend.artists import ArtistProcessor
 from backend.releases import ReleaseProcessor
@@ -27,7 +27,6 @@ def run_command():
     date_offset = datetime.now() - timedelta(days=14)
     limit = 200
     numu_app.logger.error("Starting MB process...")
-    start = time.time()
 
     # Scan user imports
     ImportProcessor().import_user_artists(check_musicbrainz=True)
@@ -43,22 +42,22 @@ def run_command():
     )
 
     for artist in artists:
-        current_time = time.time()
-        if (current_time - start) / 60 < 14:
-            numu_app.logger.info("Updating Artist: {}".format(artist))
-            updated_artist = ArtistProcessor().update_artist(artist)
-            numu_app.logger.info("Updated Artist: {}".format(updated_artist))
-            if updated_artist:
-                releases_added = ReleaseProcessor().add_releases(updated_artist)
-                numu_app.logger.info("Added Releases: {}".format(releases_added))
-
-        else:
-            numu_app.logger.error("Hit maximum execution time, aborting...")
-            break
+        numu_app.logger.info("Updating Artist: {}".format(artist))
+        updated_artist = ArtistProcessor().update_artist(artist)
+        numu_app.logger.info("Updated Artist: {}".format(updated_artist))
+        if updated_artist:
+            releases_added = ReleaseProcessor().add_releases(updated_artist)
+            numu_app.logger.info("Added Releases: {}".format(releases_added))
 
     # Scan releases
-
-    end = time.time()
-    numu_app.logger.info(
-        "MB Process completed, time: {} minutes".format((end - start) / 60)
+    releases = (
+        Release.query.filter(Release.date_checked < date_offset)
+        .order_by(Release.date_checked.asc())
+        .limit(limit)
+        .all()
     )
+
+    for release in releases:
+        numu_app.logger.info("Updating Release: {}".format(release))
+        updated_release = ReleaseProcessor().update_release(release)
+        numu_app.logger.info("Updated Release: {}".format(updated_release))

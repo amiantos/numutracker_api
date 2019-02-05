@@ -1,4 +1,5 @@
 import logging
+from logging.handlers import RotatingFileHandler
 import response
 
 from flask import Flask, make_response, jsonify, g
@@ -20,18 +21,15 @@ import backend.models
 
 migrate = Migrate(app, db)
 
-
-@app.before_first_request
-def setup_logging():
-    log_handler = logging.StreamHandler()
-    log_handler.setFormatter(
-        logging.Formatter(
-            "%(asctime)s | %(pathname)s:%(lineno)d | %(funcName)s | %(levelname)s | %(message)s"
-        )
+handler = RotatingFileHandler("numu.log", maxBytes=100000, backupCount=5)
+handler.setFormatter(
+    logging.Formatter(
+        "%(asctime)s | %(pathname)s:%(lineno)d | %(funcName)s | %(levelname)s | %(message)s"
     )
-    log_handler.setLevel(logging.INFO)
-    app.logger.addHandler(log_handler)
-    app.logger.setLevel(logging.INFO)
+)
+handler.setLevel(logging.DEBUG)
+app.logger.addHandler(handler)
+app.logger.setLevel(logging.DEBUG)
 
 
 from backend import repo

@@ -26,7 +26,7 @@ def mb_processing():
 def run_command():
     date_offset = datetime.now() - timedelta(days=3)
     limit = 200
-    numu_app.logger.error("Starting MB process...")
+    numu_app.logger.info("Starting MB process...")
 
     # Scan user imports
     ImportProcessor().import_user_artists(check_musicbrainz=True)

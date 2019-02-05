@@ -140,6 +140,20 @@ def user_artist(user_artist):
         UserRelease.listened.is_(True),
         UserRelease.type.in_(user_artist.user.filters),
     ).count()
+    recent_release = (
+        Release.query.filter(
+            Release.mbid.in_(
+                db.session.query(ArtistRelease.release_mbid)
+                .filter(ArtistRelease.artist_mbid == user_artist.mbid)
+                .all()
+            ),
+            Release.type.in_(user_artist.user.filters),
+        )
+        .order_by(Release.date_release.desc())
+        .limit(1)
+        .first()
+    )
+    recent_release_date = recent_release.date_release if recent_release else None
     serialized = {
         "mbid": user_artist.mbid,
         "name": user_artist.artist.name,
@@ -147,6 +161,7 @@ def user_artist(user_artist):
         "disambiguation": user_artist.artist.disambiguation,
         "art": get_art_urls(user_artist.artist),
         "date_updated": user_artist.artist.date_updated,
+        "recent_release_date": recent_release_date,
         "user_data": {
             "uuid": user_artist.uuid,
             "following": user_artist.following,

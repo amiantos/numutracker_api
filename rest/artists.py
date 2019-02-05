@@ -32,7 +32,9 @@ def user_artists_no_page():
 @app.route("/user/artists/<int:page>", methods=["GET"])
 @auth.login_required
 def user_artists(page):
-    query = UserArtist.query.filter(UserArtist.user_id == g.user.id)
+    query = UserArtist.query.filter(UserArtist.user_id == g.user.id).order_by(
+        UserArtist.name
+    )
     data = paginate_query(query, page, "user_artist")
     return response.success(data)
 

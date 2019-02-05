@@ -152,6 +152,9 @@ class ArtistProcessor:
     # ------------------------------------
 
     def replace_artist(self, artist, new_artist):
+        self.logger.error(
+            "Replacing Artist: {} is being replaced by {}".format(artist, new_artist)
+        )
         # Update all artist_releases
         artist_releases = self.repo.get_artist_releases(artist.mbid)
         for artist_release in artist_releases:

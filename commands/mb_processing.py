@@ -20,7 +20,7 @@ def mb_processing():
         with simpleflock.SimpleFlock("mb-processing.lock", timeout=1):
             run_command()
     except BlockingIOError:
-        numu_app.logger.error("Unable to achieve lock.")
+        numu_app.logger.info("Unable to achieve lock.")
 
 
 def run_command():

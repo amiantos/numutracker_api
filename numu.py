@@ -21,7 +21,7 @@ import backend.models
 
 migrate = Migrate(app, db)
 
-handler = RotatingFileHandler("numu.log", maxBytes=100000, backupCount=5)
+handler = RotatingFileHandler("numu.log", maxBytes=1000000, backupCount=5)
 handler.setFormatter(
     logging.Formatter(
         "%(asctime)s | %(pathname)s:%(lineno)d | %(funcName)s | %(levelname)s | %(message)s"

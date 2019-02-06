@@ -23,5 +23,5 @@ def unauthorized():
             result={"message": "You are not authorized to access this endpoint."},
             server_clock=int(time.time()),
         ),
-        403,
+        401,
     )

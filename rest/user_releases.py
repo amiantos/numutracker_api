@@ -16,11 +16,11 @@ def paginate_query(query, page):
     paginated = query.paginate(page=page, per_page=PER_PAGE, error_out=True)
     return {
         "page": page,
-        "per_page": PER_PAGE,
-        "total_pages": paginated.pages,
-        "next_page": paginated.next_num,
-        "prev_page": paginated.prev_num,
-        "items": [serializer(item, "user_release") for item in paginated.items],
+        "perPage": PER_PAGE,
+        "totalPages": paginated.pages,
+        "nextPage": paginated.next_num,
+        "prevPage": paginated.prev_num,
+        "userReleases": [serializer(item, "user_release") for item in paginated.items],
     }
 
 

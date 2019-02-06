@@ -15,11 +15,11 @@ def paginate_query(query, page, type):
     paginated = query.paginate(page=page, per_page=PER_PAGE, error_out=True)
     return {
         "page": page,
-        "per_page": PER_PAGE,
-        "total_pages": paginated.pages,
-        "next_page": paginated.next_num,
-        "prev_page": paginated.prev_num,
-        "items": [serializer(item, type) for item in paginated.items],
+        "perPage": PER_PAGE,
+        "totalPages": paginated.pages,
+        "nextPage": paginated.next_num,
+        "prevPage": paginated.prev_num,
+        "userArtists": [serializer(item, type) for item in paginated.items],
     }
 
 

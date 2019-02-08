@@ -1,25 +1,35 @@
-import time
 from datetime import datetime, timedelta
 
-from sqlalchemy import or_
-
-import simpleflock
-
-# from backend.import_processing import scan_imported_artists
-from backend.user_artists import ImportProcessor
-from backend.models import Artist, Release
-from numu import app as numu_app
+from backend import utils
 from backend.artists import ArtistProcessor
+from backend.models import Artist, Lock, Release
 from backend.releases import ReleaseProcessor
+from backend.repo import Repo
+from backend.user_artists import ImportProcessor
+from numu import app as numu_app
+from sqlalchemy import or_
 
 
 @numu_app.cli.command()
 def mb_processing():
     """Handle all processing tasks related to musicbrainz."""
-    try:
-        with simpleflock.SimpleFlock("mb-processing.lock", timeout=1):
-            run_command()
-    except BlockingIOError:
+    repo = Repo()
+    process_name = "mb_processing"
+    lock = Lock.query.filter_by(process_name=process_name).first()
+    if lock is None:
+        lock = Lock(process_name="mb_processing", lock_acquired=False)
+    if lock.lock_acquired is False:
+        lock.lock_acquired = True
+        lock.date_acquired = utils.now()
+        repo.save(lock)
+        repo.commit()
+
+        run_command()
+
+        lock.lock_acquired = False
+        repo.save(lock)
+        repo.commit()
+    else:
         numu_app.logger.info("Unable to achieve lock.")
 
 

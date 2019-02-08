@@ -87,7 +87,8 @@ def artist_release_with_user(tuple):
             "dateAdded": user_release.date_added,
             "dateUpdated": user_release.date_updated,
             "userArtists": [
-                user_artist_serializer(user_artist) for user_artist in user_release.user_artists
+                user_artist_serializer(user_artist)
+                for user_artist in user_release.user_artists
             ],
         }
     return serialized
@@ -114,9 +115,6 @@ def user_releases(user_release):
             "dateListened": user_release.date_listened,
             "dateAdded": user_release.date_added,
             "dateUpdated": user_release.date_updated,
-            "userArtists": [
-                user_artist_serializer(user_artist) for user_artist in user_release.user_artists
-            ],
         },
     }
     return serialized

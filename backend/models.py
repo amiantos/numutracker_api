@@ -127,7 +127,9 @@ class UserArtist(db.Model):
 
     user = relationship("User", lazy=True, uselist=False)
     artist = relationship("Artist", lazy=False)
-    user_releases = db.relationship("UserRelease", secondary="user_artist_release", lazy=False)
+    user_releases = db.relationship(
+        "UserRelease", secondary="user_artist_release", lazy=False
+    )
 
     def __repr__(self):
         return "<UserArtist {} - {}>".format(self.user_id, self.mbid)
@@ -257,7 +259,9 @@ class UserRelease(db.Model):
     release = relationship("Release", lazy=False)
     user = relationship("User", lazy=True, uselist=False)
 
-    user_artists = db.relationship("UserArtist", secondary="user_artist_release", lazy=False)
+    user_artists = db.relationship(
+        "UserArtist", secondary="user_artist_release", lazy=False
+    )
 
     def __repr__(self):
         return "<UserRelease {}>".format(self.uuid)
@@ -338,3 +342,9 @@ class UserNotification(db.Model):
     date_sent = Column(DateTime(True), nullable=True, default=None)
 
     release = relationship(Release, lazy=False, uselist=False)
+
+
+class Lock(db.Model):
+    process_name = Column(String(36), primary_key=True)
+    lock_acquired = Column(Boolean())
+    date_acquired = Column(DateTime(True))

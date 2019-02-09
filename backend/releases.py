@@ -105,12 +105,15 @@ class ReleaseProcessor:
 
         return release
 
-    def add_user_release(self, release, user_id):
+    def add_user_release(self, release, user_id, follow_method="AUTOMATIC"):
         notify = False
         user_release = self.repo.get_user_release(user_id, release.mbid)
         if user_release is None:
             user_release = UserRelease(
-                uuid=utils.uuid(), user_id=user_id, mbid=release.mbid
+                uuid=utils.uuid(),
+                user_id=user_id,
+                mbid=release.mbid,
+                follow_method=follow_method,
             )
             notify = True
             self.logger.info("New user release created {}".format(user_release))

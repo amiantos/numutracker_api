@@ -98,6 +98,6 @@ def user_releases_new(offset):
         UserRelease.user_id == g.user.id,
         UserRelease.type.in_(g.user.filters),
         UserRelease.following.is_(True),
-    ).order_by(UserRelease.release.date_added.desc())
+    ).order_by(UserRelease.date_followed.desc())
     data = paginate_query(query, offset, "user_release")
     return response.success(data)

@@ -83,8 +83,9 @@ def artist_release_with_user(tuple):
         serialized["userData"] = {
             "uuid": user_release.uuid,
             "listened": user_release.listened,
+            "following": user_release.following,
             "dateListened": user_release.date_listened,
-            "dateAdded": user_release.date_added,
+            "dateFollowed": user_release.date_followed,
             "dateUpdated": user_release.date_updated,
             "userArtists": [
                 user_artist_serializer(user_artist)
@@ -102,7 +103,7 @@ def user_releases(user_release):
         "type": user_release.type,
         "art": get_art_urls(user_release.release),
         "dateRelease": user_release.date_release,
-        "dateAdded": user_release.date_added,
+        "dateAdded": user_release.release.date_added,
         "dateUpdated": user_release.release.date_updated,
         "links": {
             "appleMusic": user_release.apple_music_link,
@@ -112,8 +113,9 @@ def user_releases(user_release):
         "userData": {
             "uuid": user_release.uuid,
             "listened": user_release.listened,
+            "following": user_release.following,
             "dateListened": user_release.date_listened,
-            "dateAdded": user_release.date_added,
+            "dateFollowed": user_release.date_followed,
             "dateUpdated": user_release.date_updated,
         },
     }

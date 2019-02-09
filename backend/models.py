@@ -246,7 +246,6 @@ class UserRelease(db.Model):
     )
 
     date_release = Column(Date(), nullable=False, index=True)
-    date_added = Column(DateTime(True), nullable=False, default=func.now())
     date_updated = Column(DateTime(True), nullable=False, default=func.now())
     date_checked = Column(DateTime(True), nullable=True, default=func.now())
 
@@ -255,6 +254,10 @@ class UserRelease(db.Model):
 
     listened = Column(Boolean(), default=False)
     date_listened = Column(DateTime(True), nullable=True, default=None)
+
+    date_followed = Column(DateTime(True), nullable=False, default=func.now())
+    follow_method = Column(String())
+    following = Column(Boolean(), default=True, index=True)
 
     release = relationship("Release", lazy=False)
     user = relationship("User", lazy=True, uselist=False)

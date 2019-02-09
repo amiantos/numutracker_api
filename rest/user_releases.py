@@ -38,6 +38,7 @@ def user_releases_unlistened(offset):
         UserRelease.user_id == g.user.id,
         UserRelease.type.in_(g.user.filters),
         UserRelease.listened.is_(False),
+        UserRelease.following.is_(True),
         UserRelease.date_release <= date.today(),
     ).order_by(UserRelease.date_release.desc())
     data = paginate_query(query, offset, "user_release")
@@ -56,6 +57,7 @@ def user_releases_all(offset):
     query = UserRelease.query.filter(
         UserRelease.user_id == g.user.id,
         UserRelease.type.in_(g.user.filters),
+        UserRelease.following.is_(True),
         UserRelease.date_release <= date.today(),
     ).order_by(UserRelease.date_release.desc())
     data = paginate_query(query, offset, "user_release")
@@ -74,6 +76,7 @@ def user_releases_upcoming(offset):
     query = UserRelease.query.filter(
         UserRelease.user_id == g.user.id,
         UserRelease.type.in_(g.user.filters),
+        UserRelease.following.is_(True),
         UserRelease.date_release > date.today(),
     ).order_by(UserRelease.date_release.asc())
     data = paginate_query(query, offset, "user_release")
@@ -92,7 +95,9 @@ def user_releases_new(offset):
     # TODO: Needs to be redone to access notifications table?
     # Or at least ensure that date_added is working properly
     query = UserRelease.query.filter(
-        UserRelease.user_id == g.user.id, UserRelease.type.in_(g.user.filters)
+        UserRelease.user_id == g.user.id,
+        UserRelease.type.in_(g.user.filters),
+        UserRelease.following.is_(True),
     ).order_by(UserRelease.date_added.desc())
     data = paginate_query(query, offset, "user_release")
     return response.success(data)

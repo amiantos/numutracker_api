@@ -140,6 +140,8 @@ def scan_artist_art(limit=100):
         db.session.add(artist)
         db.session.commit()
 
+    return True
+
 
 def scan_release_art(limit=100):
     date_offset = datetime.now() - timedelta(days=14)
@@ -167,3 +169,5 @@ def scan_release_art(limit=100):
         release.date_art_check = datetime.now()
         db.session.add(release)
         db.session.commit()
+
+    return True

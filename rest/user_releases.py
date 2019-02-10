@@ -103,6 +103,12 @@ def user_releases_new(offset):
     return response.success(data)
 
 
+@app.route("/user/artist/<string:mbid>/releases", methods=["GET"])
+@auth.login_required
+def user_artist_releases_no_offset(mbid):
+    return user_artist_releases(mbid, 0)
+
+
 @app.route("/user/artist/<string:mbid>/releases/<int:offset>", methods=["GET"])
 @auth.login_required
 def user_artist_releases(mbid, offset):

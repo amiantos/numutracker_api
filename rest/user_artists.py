@@ -37,9 +37,3 @@ def user_artists(offset):
     )
     data = paginate_query(query, offset, "user_artist")
     return response.success(data)
-
-
-@app.route("/user/artist/<string:mbid>/releases", methods=["GET"])
-@auth.login_required
-def user_artist_releases_no_offset(mbid):
-    return user_artist_releases(mbid, 0)

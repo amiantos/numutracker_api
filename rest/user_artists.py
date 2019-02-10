@@ -7,7 +7,7 @@ from numu import auth, db
 
 from . import app
 
-PER_PAGE = 50
+PER_PAGE = 10000
 
 
 def paginate_query(query, offset, type):

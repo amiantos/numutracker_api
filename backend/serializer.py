@@ -77,7 +77,7 @@ def artist_release_with_user(tuple):
             "spotify": release.spotify_link,
         },
         "artists": [artist(x) for x in release.artists],
-        "userData": {},
+        "userData": None,
     }
     if user_release:
         serialized["userData"] = {
@@ -87,10 +87,6 @@ def artist_release_with_user(tuple):
             "dateListened": user_release.date_listened,
             "dateFollowed": user_release.date_followed,
             "dateUpdated": user_release.date_updated,
-            "userArtists": [
-                user_artist_serializer(user_artist)
-                for user_artist in user_release.user_artists
-            ],
         }
     return serialized
 

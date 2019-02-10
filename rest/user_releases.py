@@ -3,9 +3,9 @@ from datetime import date
 from flask import g
 
 import response
-from backend.models import UserRelease
+from backend.models import UserRelease, Release, ArtistRelease
 from backend.serializer import serializer
-from numu import auth
+from numu import auth, db
 
 from . import app
 
@@ -100,4 +100,18 @@ def user_releases_new(offset):
         UserRelease.following.is_(True),
     ).order_by(UserRelease.date_followed.desc())
     data = paginate_query(query, offset, "user_release")
+    return response.success(data)
+
+
+@app.route("/user/artist/<string:mbid>/releases/<int:offset>", methods=["GET"])
+@auth.login_required
+def user_artist_releases(mbid, offset):
+    query = (
+        db.session.query(ArtistRelease, Release, UserRelease)
+        .join(Release)
+        .outerjoin(UserRelease)
+        .filter(ArtistRelease.artist_mbid == mbid, Release.type.in_(g.user.filters))
+        .order_by(Release.date_release.desc())
+    )
+    data = paginate_query(query, offset, "artist_release_with_user")
     return response.success(data)

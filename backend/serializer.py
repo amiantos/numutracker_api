@@ -119,6 +119,32 @@ def user_releases(user_release):
 
 
 def user_artist_serializer(user_artist):
+    filters = str(user_artist.user.filters)[1:-1]
+    result = db.session.execute(
+        """
+    select count(release_mbid), max(date_release) from artist_release
+    left join release on release.mbid = artist_release.release_mbid
+    WHERE artist_release.artist_mbid = '{}' and release.type IN ({})""".format(
+            user_artist.mbid, filters
+        )
+    ).first()
+    total_releases = result["count"]
+    recent_release = result["max"]
+
+    listened_releases = db.session.execute(
+        """
+    select count(release_mbid) from artist_release
+    left join user_release on artist_release.release_mbid = user_release.mbid
+    WHERE artist_release.artist_mbid = '{}'
+    and user_release.user_id = {} 
+    and user_release.listened is true 
+    and user_release.type IN ({});
+    """.format(
+            user_artist.mbid, user_artist.user_id, filters
+        )
+    ).first()["count"]
+
+    recent_release_date = recent_release if recent_release else None
     serialized = {
         "mbid": user_artist.mbid,
         "name": user_artist.artist.name,
@@ -126,11 +152,14 @@ def user_artist_serializer(user_artist):
         "disambiguation": user_artist.artist.disambiguation,
         "art": get_art_urls(user_artist.artist),
         "dateUpdated": user_artist.artist.date_updated,
+        "recentReleaseDate": recent_release_date,
         "userData": {
             "uuid": user_artist.uuid,
             "following": user_artist.following,
             "dateFollowed": user_artist.date_followed,
             "dateUpdated": user_artist.date_updated,
+            "totalReleases": total_releases,
+            "listenedReleases": listened_releases,
         },
     }
     return serialized

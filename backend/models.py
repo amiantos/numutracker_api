@@ -161,6 +161,8 @@ class ArtistRelease(db.Model):
         index=True,
     )
 
+    release = relationship("Release", lazy=False)
+
 
 class UserArtistRelease(db.Model):
     user_artist_uuid = Column(

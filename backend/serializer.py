@@ -119,23 +119,6 @@ def user_releases(user_release):
 
 
 def user_artist_serializer(user_artist):
-    total_releases = Release.query.filter(
-        Release.mbid.in_(
-            db.session.query(ArtistRelease.release_mbid)
-            .filter(ArtistRelease.artist_mbid == user_artist.mbid)
-            .all()
-        ),
-        Release.type.in_(user_artist.user.filters),
-    ).count()
-    listened_releases = UserRelease.query.filter(
-        UserRelease.mbid.in_(
-            db.session.query(ArtistRelease.release_mbid)
-            .filter(ArtistRelease.artist_mbid == user_artist.mbid)
-            .all()
-        ),
-        UserRelease.listened.is_(True),
-        UserRelease.type.in_(user_artist.user.filters),
-    ).count()
     recent_release = (
         Release.query.filter(
             Release.mbid.in_(
@@ -163,8 +146,6 @@ def user_artist_serializer(user_artist):
             "following": user_artist.following,
             "dateFollowed": user_artist.date_followed,
             "dateUpdated": user_artist.date_updated,
-            "totalReleases": total_releases,
-            "listenedReleases": listened_releases,
         },
     }
     return serialized

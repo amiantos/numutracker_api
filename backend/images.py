@@ -39,8 +39,6 @@ def put_image_from_url(url, name):
         )
         raise IOError("Unable to process image file.")
 
-    numu_app.logger.info("File size: {}".format(image.size))
-
     with BytesIO() as output:
         try:
             image.save(output, "png")

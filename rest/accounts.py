@@ -123,7 +123,9 @@ def import_numu_v2():
     result = {}
 
     data = grab_json(
-        "https://www.numutracker.com/v2/json2.php?importv2={}".format(username)
+        "https://www.numutracker.com/v2/json2.php?importv2={}&key={}".format(
+            username, numu_app.config.get("NUMU_V2_API_KEY")
+        )
     )
 
     result["raw_data"] = data

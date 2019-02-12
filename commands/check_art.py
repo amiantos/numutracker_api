@@ -12,7 +12,7 @@ def check_art():
     process_name = "check_art"
     lock = Lock.query.filter_by(process_name=process_name).first()
     if lock is None:
-        lock = Lock(process_name="check_art", lock_acquired=False)
+        lock = Lock(process_name=process_name, lock_acquired=False)
     if lock.lock_acquired is False:
         lock.lock_acquired = True
         lock.date_acquired = utils.now()

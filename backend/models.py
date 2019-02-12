@@ -23,6 +23,7 @@ class User(db.Model):
     password_hash = Column(LargeBinary(), nullable=True)
     date_joined = Column(DateTime(True), default=func.now())
     date_last_activity = Column(DateTime(True), default=func.now())
+    date_v2_import = Column(DateTime(True), nullable=True)
 
     album = Column(Boolean(), default=True)
     single = Column(Boolean(), default=True)

@@ -1,12 +1,14 @@
 import json
 from datetime import datetime
 from uuid import uuid4
+from numu import app as numu_app
 
 import pytz
 import requests
 
 
 def grab_json(uri):
+    numu_app.logger.info(uri)
     try:
         response = requests.get(uri)
     except requests.ConnectionError:

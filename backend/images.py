@@ -48,6 +48,7 @@ def put_image_from_url(url, name):
             numu_app.logger.error(
                 "Save of {} failed, Error message: {}".format(url, err)
             )
+            raise err
 
         output.seek(0)
         client.upload_fileobj(

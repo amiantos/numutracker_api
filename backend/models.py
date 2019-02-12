@@ -302,7 +302,7 @@ class UserArtistImport(db.Model):
         index=True,
         primary_key=True,
     )
-    import_name = Column(String(100), primary_key=True)
+    import_name = Column(Text, primary_key=True)
     import_mbid = Column(String(36), nullable=True)
     import_method = Column(String(36))
     found_mbid = Column(

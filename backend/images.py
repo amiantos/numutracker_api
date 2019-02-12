@@ -35,7 +35,7 @@ def put_image_from_url(url, name):
         image = Image.open(response.raw)
     except TypeError as err:
         numu_app.logger.error(
-            "Import of {} unsuccessful. Error message:".format(url, err)
+            "Import of {} unsuccessful. Error message: {}".format(url, err)
         )
         raise IOError("Unable to process image file.")
 

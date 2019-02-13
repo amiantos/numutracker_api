@@ -8,7 +8,6 @@ import requests
 
 
 def grab_json(uri):
-    numu_app.logger.info(uri)
     try:
         response = requests.get(uri)
     except requests.ConnectionError:

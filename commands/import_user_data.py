@@ -64,23 +64,23 @@ def run_command():
             imported = import_processor.save_imports(user.id, artists, "v2")
             print("Imported {} artists from V2...".format(imported))
 
-        listens = data.get("listens")
+        listens = data.get("listens", [])
         releases_added = 0
-        if listens:
-            for listen in listens:
-                release_mbid = listen.get("mbid")
-                release = repo.get_release_by_mbid(release_mbid)
+        for listen in listens:
+            release_mbid = listen.get("mbid")
+            release = repo.get_release_by_mbid(release_mbid)
 
-                if release:
-                    user_release, notify = release_processor.add_user_release(
-                        release, user_id=user.id, follow_method="v2"
-                    )
-                    user_release.listened = True
-                    user_release.date_listened = listen.get("listen_date")
-                    repo.save(user_release)
-                    repo.commit()
+            if release:
+                user_release, notify = release_processor.add_user_release(
+                    release, user_id=user.id, follow_method="v2"
+                )
+                user_release.listened = True
+                user_release.date_listened = listen.get("listen_date")
+                repo.save(user_release)
+                repo.commit()
+                if notify:
                     releases_added += 1
-            print("Listens imported: {}".format(releases_added))
+        print("Listens imported: {}".format(releases_added))
 
         user.date_v2_import = utils.now()
         repo.save(user)

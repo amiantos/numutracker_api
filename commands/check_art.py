@@ -20,6 +20,7 @@ def check_art():
         repo.commit()
 
         run_command()
+
         lock.lock_acquired = False
         repo.save(lock)
         repo.commit()

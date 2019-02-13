@@ -17,7 +17,7 @@ def mb_processing():
     process_name = "mb_processing"
     lock = Lock.query.filter_by(process_name=process_name).first()
     if lock is None:
-        lock = Lock(process_name="mb_processing", lock_acquired=False)
+        lock = Lock(process_name=process_name, lock_acquired=False)
     if lock.lock_acquired is False:
         lock.lock_acquired = True
         lock.date_acquired = utils.now()
@@ -52,14 +52,14 @@ def run_command():
     )
 
     for artist in artists:
-        numu_app.logger.info("Updating Artist: {}".format(artist))
+        numu_app.logger.info(
+            "Updating Artist: {} - Last check: {}".format(artist, artist.date_checked)
+        )
         updated_artist = ArtistProcessor().update_artist(artist)
-        numu_app.logger.info("Updated Artist: {}".format(updated_artist))
         if updated_artist:
             releases_added = ReleaseProcessor().add_releases(updated_artist)
             numu_app.logger.info("Added Releases: {}".format(releases_added))
 
-    # Scan releases
     releases = (
         Release.query.filter(Release.date_checked < date_offset)
         .order_by(Release.date_checked.asc())
@@ -68,6 +68,9 @@ def run_command():
     )
 
     for release in releases:
-        numu_app.logger.info("Updating Release: {}".format(release))
-        updated_release = ReleaseProcessor().update_release(release)
-        numu_app.logger.info("Updated Release: {}".format(updated_release))
+        numu_app.logger.info(
+            "Updating Release: {} - Last check: {}".format(
+                release, release.date_checked
+            )
+        )
+        ReleaseProcessor().update_release(release)

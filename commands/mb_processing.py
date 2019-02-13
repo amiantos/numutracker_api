@@ -34,7 +34,6 @@ def mb_processing():
 
 
 def run_command():
-    date_offset = datetime.now() - timedelta(days=3)
     limit = 200
     numu_app.logger.info("Starting MB process...")
 
@@ -42,6 +41,7 @@ def run_command():
     ImportProcessor().import_user_artists(check_musicbrainz=True)
 
     # Scan artists
+    date_offset = datetime.now() - timedelta(days=3)
     artists = (
         Artist.query.filter(
             or_(Artist.date_checked < date_offset, Artist.date_checked.is_(None))
@@ -60,6 +60,7 @@ def run_command():
             releases_added = ReleaseProcessor().add_releases(updated_artist)
             numu_app.logger.info("Added Releases: {}".format(releases_added))
 
+    date_offset = datetime.now() - timedelta(days=14)
     releases = (
         Release.query.filter(Release.date_checked < date_offset)
         .order_by(Release.date_checked.asc())

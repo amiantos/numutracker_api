@@ -161,9 +161,9 @@ def import_numu_v2():
                 user_release.listened = True
                 user_release.date_listened = listen.get("listen_date")
                 repo.save(user_release)
-                repo.commit()
                 if notify:
                     releases_added += 1
+            repo.commit()
 
         result["releases_added"] = releases_added
 

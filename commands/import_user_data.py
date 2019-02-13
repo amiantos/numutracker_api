@@ -77,9 +77,9 @@ def run_command():
                 user_release.listened = True
                 user_release.date_listened = listen.get("listen_date")
                 repo.save(user_release)
-                repo.commit()
                 if notify:
                     releases_added += 1
+        repo.commit()
         print("Listens imported: {}".format(releases_added))
 
         user.date_v2_import = utils.now()

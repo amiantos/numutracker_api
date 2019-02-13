@@ -133,7 +133,6 @@ class ReleaseProcessor:
                 user_release.user_artists.append(user_artist)
 
         self.repo.save(user_release)
-        self.repo.commit()
 
         return user_release, notify
 
@@ -145,6 +144,7 @@ class ReleaseProcessor:
             if notifications and notify:
                 # TODO: Create notification
                 pass
+        self.repo.commit()
 
     # ------------------------------------
     # Update

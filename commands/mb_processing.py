@@ -38,40 +38,44 @@ def run_command():
     numu_app.logger.info("Starting MB process...")
 
     # Scan user imports
-    ImportProcessor().import_user_artists(check_musicbrainz=True)
+    imports_processed = ImportProcessor().import_user_artists(check_musicbrainz=True)
 
-    # Scan artists
-    date_offset = datetime.now() - timedelta(days=3)
-    artists = (
-        Artist.query.filter(
-            or_(Artist.date_checked < date_offset, Artist.date_checked.is_(None))
-        )
-        .order_by(Artist.date_checked.asc().nullsfirst())
-        .limit(limit)
-        .all()
-    )
-
-    for artist in artists:
-        numu_app.logger.info(
-            "Updating Artist: {} - Last check: {}".format(artist, artist.date_checked)
-        )
-        updated_artist = ArtistProcessor().update_artist(artist)
-        if updated_artist:
-            releases_added = ReleaseProcessor().add_releases(updated_artist)
-            numu_app.logger.info("Added Releases: {}".format(releases_added))
-
-    date_offset = datetime.now() - timedelta(days=14)
-    releases = (
-        Release.query.filter(Release.date_checked < date_offset)
-        .order_by(Release.date_checked.asc())
-        .limit(limit)
-        .all()
-    )
-
-    for release in releases:
-        numu_app.logger.info(
-            "Updating Release: {} - Last check: {}".format(
-                release, release.date_checked
+    # If imports have been taken care of, update artists and releases.
+    if imports_processed == 0:
+        # Scan artists
+        date_offset = datetime.now() - timedelta(days=3)
+        artists = (
+            Artist.query.filter(
+                or_(Artist.date_checked < date_offset, Artist.date_checked.is_(None))
             )
+            .order_by(Artist.date_checked.asc().nullsfirst())
+            .limit(limit)
+            .all()
         )
-        ReleaseProcessor().update_release(release)
+
+        for artist in artists:
+            numu_app.logger.info(
+                "Updating Artist: {} - Last check: {}".format(
+                    artist, artist.date_checked
+                )
+            )
+            updated_artist = ArtistProcessor().update_artist(artist)
+            if updated_artist:
+                releases_added = ReleaseProcessor().add_releases(updated_artist)
+                numu_app.logger.info("Added Releases: {}".format(releases_added))
+
+        date_offset = datetime.now() - timedelta(days=14)
+        releases = (
+            Release.query.filter(Release.date_checked < date_offset)
+            .order_by(Release.date_checked.asc())
+            .limit(limit)
+            .all()
+        )
+
+        for release in releases:
+            numu_app.logger.info(
+                "Updating Release: {} - Last check: {}".format(
+                    release, release.date_checked
+                )
+            )
+            ReleaseProcessor().update_release(release)

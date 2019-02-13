@@ -78,10 +78,11 @@ class ImportProcessor:
         return artists_added
 
     def import_user_artists(self, check_musicbrainz=True, user_id=None):
+        imports_processed = 0
         date_filter = datetime.now() - timedelta(days=14)
         limit = 5000
         if check_musicbrainz:
-            limit = 100
+            limit = 1000
 
         if user_id:
             artist_imports = self.repo.get_user_artist_imports(user_id)
@@ -102,8 +103,10 @@ class ImportProcessor:
                 if check_musicbrainz:
                     artist_import.date_checked = func.now()
 
+            imports_processed += 1
             self.repo.save(artist_import)
             self.repo.commit()
+        return imports_processed
 
     def _find_artist(self, artist_import, check_musicbrainz):
         found_artist = None

@@ -79,7 +79,7 @@ class ImportProcessor:
 
     def import_user_artists(self, check_musicbrainz=True, user_id=None):
         date_filter = datetime.now() - timedelta(days=14)
-        limit = 1000
+        limit = 5000
         if check_musicbrainz:
             limit = 100
 

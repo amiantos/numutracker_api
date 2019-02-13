@@ -108,7 +108,7 @@ def get_release_art(release):
                 put_image_from_url(full_url, "release/full/" + image_name)
                 put_image_from_url(large_url, "release/large/" + image_name)
                 return True
-            except IOError as e:
+            except Exception as e:
                 numu_app.logger.error("Put release image failed: {}".format(e))
                 return False
     numu_app.logger.info("No release art found.")

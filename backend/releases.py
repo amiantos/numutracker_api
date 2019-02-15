@@ -55,6 +55,10 @@ class ReleaseProcessor:
             release = self._save_mb_release(mb_release)
 
             if release is not None:
+                # Add release to users following this artist...
+                user_artists = self.repo.get_user_artists_by_mbid(artist.mbid)
+                for user_artist in user_artists:
+                    self.add_user_releases(user_artist, [release], True)
                 releases_added.append(release.mbid)
 
         artist.date_checked = func.now()
@@ -124,7 +128,6 @@ class ReleaseProcessor:
             if notifications and notify:
                 # TODO: Create notification
                 pass
-        self.repo.commit()
 
     # ------------------------------------
     # Update
@@ -180,6 +183,7 @@ class ReleaseProcessor:
             user_artists = self.repo.get_user_artists_by_mbid(artist.mbid)
             for user_artist in user_artists:
                 self.add_user_releases(user_artist, releases, notifications)
+        self.repo.commit()
 
     # ------------------------------------
     # Delete

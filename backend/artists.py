@@ -153,7 +153,7 @@ class ArtistProcessor:
         self.repo.commit()
 
         # Update all user_artists
-        user_artists = self.repo.get_user_artists_by_mbid(artist.mbid)
+        user_artists = self.repo.get_user_artists_by_mbid(artist.mbid, following=False)
         for user_artist in user_artists:
             new_user_artist = self.repo.get_user_artist(
                 user_artist.user_id, new_artist.mbid

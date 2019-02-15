@@ -70,7 +70,7 @@ def user_releases(tuple):
         "userData": None,
     }
     if user_release:
-        serialized["user_data"] = {
+        serialized["userData"] = {
             "uuid": user_release.uuid,
             "listened": user_release.listened,
             "following": user_release.following,

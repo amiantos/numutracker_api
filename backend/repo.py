@@ -54,7 +54,11 @@ class Repo:
             artist = Artist.query.filter(Artist.name.ilike(name)).first()
         return artist
 
-    def get_user_artists_by_mbid(self, mbid):
+    def get_user_artists_by_mbid(self, mbid, following=True):
+        if following:
+            return UserArtist.query.filter(
+                UserArtist.mbid == mbid, UserArtist.following.is_(True)
+            ).all()
         return UserArtist.query.filter_by(mbid=mbid).all()
 
     def get_user_artists_by_user_id(self, user_id):

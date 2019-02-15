@@ -34,7 +34,9 @@ def user_releases():
     except ValueError:
         offset = 0
     artist_mbids = (
-        db.session.query(UserArtist.mbid).filter(UserArtist.user_id == g.user.id).all()
+        db.session.query(UserArtist.mbid)
+        .filter(UserArtist.user_id == g.user.id, UserArtist.following.is_(True))
+        .all()
     )
     query = (
         db.session.query(ArtistRelease, Release, UserRelease)

@@ -57,7 +57,6 @@ def run_command():
             user.remix = bool(filters["remix"])
             user.other = bool(filters["other"])
             repo.save(user)
-            repo.commit()
 
         artists = data.get("artists")
         if artists:
@@ -79,7 +78,6 @@ def run_command():
                 repo.save(user_release)
                 if notify:
                     releases_added += 1
-        repo.commit()
         print("Listens imported: {}".format(releases_added))
 
         user.date_v2_import = utils.now()

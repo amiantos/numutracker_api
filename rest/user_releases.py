@@ -34,23 +34,13 @@ def user_releases():
     except ValueError:
         offset = 0
     artist_mbids = (
-        db.session.query(UserArtist.mbid)
-        .filter(UserArtist.user_id == g.user.id, UserArtist.following.is_(True))
-        .all()
-    )
-    release_mbids = (
-        db.session.query(UserRelease.mbid)
-        .filter(UserRelease.user_id == g.user.id, UserRelease.following.is_(True))
-        .all()
+        db.session.query(UserArtist.mbid).filter(UserArtist.user_id == g.user.id).all()
     )
     query = (
         db.session.query(ArtistRelease, Release, UserRelease)
         .join(Release)
         .filter(
-            or_(
-                ArtistRelease.artist_mbid.in_(artist_mbids),
-                Release.mbid.in_(release_mbids),
-            ),
+            ArtistRelease.artist_mbid.in_(artist_mbids),
             Release.type.in_(g.user.filters),
         )
         .outerjoin(

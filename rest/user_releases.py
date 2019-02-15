@@ -40,7 +40,7 @@ def user_releases():
     )
     release_mbids = (
         db.session.query(UserRelease.mbid)
-        .filter(UserRelease.user_id == g.user.id, UserRelease.follow_method.is_(True))
+        .filter(UserRelease.user_id == g.user.id, UserRelease.following.is_(True))
         .all()
     )
     query = (

@@ -20,3 +20,14 @@ def unauthorized():
         ),
         401,
     )
+
+
+def invalid_apikey():
+    return (
+        jsonify(
+            success=False,
+            result={"message": "You API key is not valid or has expired."},
+            server_clock=int(time.time()),
+        ),
+        401,
+    )

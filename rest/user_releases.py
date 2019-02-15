@@ -3,6 +3,7 @@ from datetime import date
 from flask import g, request
 
 import response
+from .api_key import require_apikey
 from backend.models import UserRelease, Release, ArtistRelease, UserArtist
 from backend.serializer import serializer
 from numu import auth, db
@@ -28,6 +29,7 @@ def paginate_query(query, offset, type):
 
 @app.route("/user/releases", methods=["GET"])
 @auth.login_required
+@require_apikey
 def user_releases():
     try:
         offset = int(request.args.get("offset", 0))
@@ -55,6 +57,7 @@ def user_releases():
 
 @app.route("/user/artist/<string:mbid>/releases", methods=["GET"])
 @auth.login_required
+@require_apikey
 def user_artist_releases(mbid):
     try:
         offset = int(request.args.get("offset", 0))

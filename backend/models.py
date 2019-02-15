@@ -304,3 +304,10 @@ class Lock(db.Model):
     process_name = Column(String(36), primary_key=True)
     lock_acquired = Column(Boolean())
     date_acquired = Column(DateTime(True))
+
+
+class APIToken(db.Model):
+    token = Column(String(36), primary_key=True)
+    active = Column(Boolean(), default=True)
+    date_created = Column(DateTime(True), nullable=False, default=func.now())
+    meta = Column(String())

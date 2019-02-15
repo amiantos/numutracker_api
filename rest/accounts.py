@@ -1,6 +1,7 @@
 from flask import g, request
 
 import response
+from .api_key import require_apikey
 from backend import repo
 from backend.releases import ReleaseProcessor
 from backend.repo import Repo
@@ -13,6 +14,7 @@ from . import app
 
 
 @app.route("/user", methods=["POST"])
+@require_apikey
 def new_user():
     email = request.json.get("email")
     password = request.json.get("password")
@@ -37,6 +39,7 @@ def new_user():
 
 @app.route("/user")
 @auth.login_required
+@require_apikey
 def get_user():
     return response.success(
         {
@@ -51,6 +54,7 @@ def get_user():
 
 @app.route("/user/import", methods=["POST"])
 @auth.login_required
+@require_apikey
 def import_artists_endpoint():
     """
     Import artists
@@ -73,6 +77,7 @@ def import_artists_endpoint():
 
 @app.route("/user/import/lastfm", methods=["POST"])
 @auth.login_required
+@require_apikey
 def import_lastfm_artists():
     """
     Import artists from Last.FM
@@ -106,6 +111,7 @@ def import_lastfm_artists():
 
 @app.route("/user/import/v2", methods=["POST"])
 @auth.login_required
+@require_apikey
 def import_numu_v2():
     """
     Import data from Numu API v2

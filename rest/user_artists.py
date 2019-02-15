@@ -1,6 +1,7 @@
 from flask import g, request
 
 import response
+from .api_key import require_apikey
 from backend.models import UserArtist
 from backend.serializer import serializer
 from numu import auth
@@ -25,6 +26,7 @@ def paginate_query(query, offset, type):
 
 @app.route("/user/artists", methods=["GET"])
 @auth.login_required
+@require_apikey
 def user_artists():
     try:
         offset = int(request.args.get("offset", 0))

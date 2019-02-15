@@ -3,8 +3,10 @@ from backend.models import Artist, Release
 
 
 def serializer(object, type):
+    if type == "user_release_quick":
+        return user_releases_quick(object)
     if type == "user_release":
-        return user_releases(object)
+        return user_release(object)
     if type == "user_artist":
         return user_artist(object)
 
@@ -53,7 +55,7 @@ def get_art_urls(object):
         }
 
 
-def user_releases(tuple):
+def user_releases_quick(tuple):
     release = tuple[1]
     user_release = tuple[2]
     serialized = {
@@ -78,6 +80,30 @@ def user_releases(tuple):
             "dateFollowed": user_release.date_followed,
             "dateUpdated": user_release.date_updated,
         }
+    return serialized
+
+
+def user_release(user_release):
+    serialized = {
+        "mbid": user_release.release.mbid,
+        "title": user_release.release.title,
+        "artistNames": user_release.release.artist_names,
+        "type": user_release.release.type,
+        "art": get_art_urls(user_release.release),
+        "dateRelease": user_release.release.date_release,
+        "dateAdded": user_release.release.date_added,
+        "dateUpdated": user_release.release.date_updated,
+        "links": user_release.release.links,
+        "artists": [artist(x) for x in user_release.release.artists],
+        "userData": {
+            "uuid": user_release.uuid,
+            "listened": user_release.listened,
+            "following": user_release.following,
+            "dateListened": user_release.date_listened,
+            "dateFollowed": user_release.date_followed,
+            "dateUpdated": user_release.date_updated,
+        },
+    }
     return serialized
 
 

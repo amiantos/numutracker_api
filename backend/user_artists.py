@@ -74,6 +74,7 @@ class ImportProcessor:
 
         if artists_added > 0:
             self.repo.commit()
+            self.import_user_artists(False, user_id)
 
         return artists_added
 
@@ -94,10 +95,12 @@ class ImportProcessor:
 
             if found_artist is not None:
                 self.logger.info("Found artist {}".format(found_artist))
-                artist_import.found_mbid = found_artist.mbid
-                self._create_user_artist(
+                user_artist = self._create_user_artist(
                     artist_import.user_id, artist_import.import_method, found_artist
                 )
+                if check_musicbrainz:
+                    artist_import.found_mbid = found_artist.mbid
+                    self._create_user_releases(found_artist, user_artist)
             else:
                 self.logger.info("Did not find artist")
                 if check_musicbrainz:
@@ -137,4 +140,7 @@ class ImportProcessor:
         user_artist = self.artist_processor.add_user_artist(
             user_id, artist, import_method
         )
+        return user_artist
+
+    def _create_user_releases(self, artist, user_artist):
         self.release_processor.update_user_releases(artist, user_artist, False)

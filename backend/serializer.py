@@ -1,5 +1,5 @@
 """Serialize models for API return."""
-from backend.models import Artist, Release
+from backend.models import Artist, Release, DeletedArtist, DeletedRelease
 
 
 def serializer(object, type):
@@ -9,6 +9,8 @@ def serializer(object, type):
         return user_release(object)
     if type == "user_artist":
         return user_artist(object)
+    if type == "deletion":
+        return deletion(object)
 
 
 def get_art_urls(object):
@@ -133,4 +135,19 @@ def artist(artist):
         "disambiguation": artist.disambiguation,
         "art": get_art_urls(artist),
         "dateUpdated": artist.date_updated,
+    }
+
+
+def deletion(object):
+    if type(object) is DeletedArtist:
+        return {"deletedArtist": deletion_data(object)}
+    if type(object) is DeletedRelease:
+        return {"deletedRelease": deletion_data(object)}
+
+
+def deletion_data(object):
+    return {
+        "mbid": object.mbid,
+        "date_deleted": object.date_deleted,
+        "meta": object.meta,
     }

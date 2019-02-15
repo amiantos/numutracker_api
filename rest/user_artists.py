@@ -37,7 +37,7 @@ def user_artists():
         offset = 0
         date_offset = None
 
-    if date_offset:
+    if date_offset is not None:
         try:
             date_offset = datetime.fromtimestamp(date_offset)
         except TypeError:

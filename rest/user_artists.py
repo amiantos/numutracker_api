@@ -1,10 +1,12 @@
+from datetime import datetime
 from flask import g, request
 
 import response
 from .api_key import require_apikey
-from backend.models import UserArtist
+from backend.models import UserArtist, Artist
 from backend.serializer import serializer
 from numu import auth
+from sqlalchemy import or_
 
 from . import app
 
@@ -30,10 +32,32 @@ def paginate_query(query, offset, type):
 def user_artists():
     try:
         offset = int(request.args.get("offset", 0))
+        date_offset = int(request.args.get("date_offset", 0))
     except ValueError:
         offset = 0
-    query = UserArtist.query.filter(UserArtist.user_id == g.user.id).order_by(
-        UserArtist.date_updated.desc()
-    )
+        date_offset = None
+
+    if date_offset:
+        try:
+            date_offset = datetime.fromtimestamp(date_offset)
+        except TypeError:
+            date_offset = None
+
+    if date_offset:
+        query = (
+            UserArtist.query.join(Artist)
+            .filter(
+                UserArtist.user_id == g.user.id,
+                or_(
+                    UserArtist.date_updated >= date_offset,
+                    Artist.date_updated == date_offset,
+                ),
+            )
+            .order_by(UserArtist.date_updated.desc())
+        )
+    else:
+        query = UserArtist.query.filter(UserArtist.user_id == g.user.id).order_by(
+            UserArtist.date_updated.desc()
+        )
     data = paginate_query(query, offset, "user_artist")
     return response.success(data)

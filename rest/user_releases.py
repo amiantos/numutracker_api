@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 
 from flask import g, request
 
@@ -8,7 +8,6 @@ from backend.models import UserRelease, Release, ArtistRelease, UserArtist
 from backend.serializer import serializer
 from numu import auth, db, app as numu_app
 from sqlalchemy import and_, or_
-from sqlalchemy.orm import joinedload
 
 from . import app
 

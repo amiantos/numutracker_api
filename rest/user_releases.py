@@ -6,7 +6,7 @@ import response
 from backend.models import UserRelease, Release, ArtistRelease, UserArtist
 from backend.serializer import serializer
 from numu import auth, db
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 
 from . import app
 
@@ -38,11 +38,19 @@ def user_releases():
         .filter(UserArtist.user_id == g.user.id, UserArtist.following.is_(True))
         .all()
     )
+    release_mbids = (
+        db.session.query(UserRelease.mbid)
+        .filter(UserRelease.user_id == g.user.id, UserRelease.follow_method.is_(True))
+        .all()
+    )
     query = (
         db.session.query(ArtistRelease, Release, UserRelease)
         .join(Release)
         .filter(
-            ArtistRelease.artist_mbid.in_(artist_mbids),
+            or_(
+                ArtistRelease.artist_mbid.in_(artist_mbids),
+                Release.mbid.in_(release_mbids),
+            ),
             Release.type.in_(g.user.filters),
         )
         .outerjoin(

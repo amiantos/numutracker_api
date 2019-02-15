@@ -11,6 +11,7 @@ from backend.models import (
     ArtistRelease,
 )
 from sqlalchemy.orm import joinedload
+from sqlalchemy import and_
 
 
 class Repo:
@@ -100,11 +101,18 @@ class Repo:
     def get_user_release(self, user_id, mbid):
         return UserRelease.query.filter_by(user_id=user_id, mbid=mbid).first()
 
-    def get_user_releases_for_artist(self, user_id, mbid):
-        user_artist = UserArtist.query.filter_by(user_id=user_id, mbid=mbid).first()
-        if user_artist:
-            return user_artist.user_releases
-        return None
+    def get_user_releases_for_artist(self, user, mbid):
+        return (
+            db.session.query(ArtistRelease, Release, UserRelease)
+            .join(Release)
+            .filter(ArtistRelease.artist_mbid == mbid, Release.type.in_(user.filters))
+            .outerjoin(
+                UserRelease,
+                and_(UserRelease.mbid == Release.mbid, UserRelease.user_id == user.id),
+            )
+            .order_by(Release.date_release.desc())
+            .all()
+        ) or None
 
     def update_user_releases(self, where, updates):
         """

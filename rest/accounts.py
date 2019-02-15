@@ -163,7 +163,7 @@ def import_numu_v2():
                 repo.save(user_release)
                 if notify:
                     releases_added += 1
-            repo.commit()
+        repo.commit()
 
         result["releases_added"] = releases_added
 

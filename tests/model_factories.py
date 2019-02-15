@@ -49,8 +49,7 @@ class ArtistFactory(factory.alchemy.SQLAlchemyModelFactory):
     date_art_check = None
     date_checked = None
     date_updated = None
-    apple_music_link = None
-    spotify_link = None
+    links = {}
 
 
 class ReleaseFactory(factory.alchemy.SQLAlchemyModelFactory):
@@ -61,7 +60,7 @@ class ReleaseFactory(factory.alchemy.SQLAlchemyModelFactory):
     mbid = factory.fuzzy.FuzzyAttribute(lambda: utils.uuid())
     title = factory.fuzzy.FuzzyText(length=12)
     artist_names = factory.Faker("name")
-    type = "album"
+    type = "Album"
     art = False
     date_release = "2019-02-03"
 
@@ -74,13 +73,6 @@ class UserReleaseFactory(factory.alchemy.SQLAlchemyModelFactory):
     uuid = factory.fuzzy.FuzzyAttribute(lambda: utils.uuid())
     user_id = factory.SelfAttribute("user.id")
     mbid = factory.SelfAttribute("release.mbid")
-    title = factory.SelfAttribute("release.title")
-    artist_names = factory.SelfAttribute("release.artist_names")
-    type = factory.SelfAttribute("release.type")
-    art = factory.SelfAttribute("release.art")
-    date_release = factory.SelfAttribute("release.date_release")
-    apple_music_link = factory.SelfAttribute("release.apple_music_link")
-    spotify_link = factory.SelfAttribute("release.spotify_link")
 
     user = factory.SubFactory(UserFactory)
     release = factory.SubFactory(ReleaseFactory)
@@ -94,9 +86,6 @@ class UserArtistFactory(factory.alchemy.SQLAlchemyModelFactory):
     uuid = factory.fuzzy.FuzzyAttribute(lambda: utils.uuid())
     user_id = factory.SelfAttribute("user.id")
     mbid = factory.SelfAttribute("artist.mbid")
-    name = factory.SelfAttribute("artist.name")
-    sort_name = factory.SelfAttribute("artist.sort_name")
-    date_updated = factory.SelfAttribute("artist.date_updated")
 
     date_followed = utils.now()
     follow_method = factory.fuzzy.FuzzyChoice(["V2", "apple", "spotify", "lastfm"])

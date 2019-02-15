@@ -34,11 +34,14 @@ def mb_processing():
 
 
 def run_command():
+    repo = Repo()
     limit = 200
     numu_app.logger.info("Starting MB process...")
 
     # Scan user imports
-    imports_processed = ImportProcessor().import_user_artists(check_musicbrainz=True)
+    imports_processed = ImportProcessor(repo=repo).import_user_artists(
+        check_musicbrainz=True
+    )
 
     # If imports have been taken care of, update artists and releases.
     if imports_processed == 0:
@@ -59,11 +62,12 @@ def run_command():
                     artist, artist.date_checked
                 )
             )
-            updated_artist = ArtistProcessor().update_artist(artist)
+            updated_artist = ArtistProcessor(repo=repo).update_artist(artist)
             if updated_artist:
                 releases_added = ReleaseProcessor().add_releases(updated_artist)
                 numu_app.logger.info("Added Releases: {}".format(releases_added))
 
+        # Scan releases
         date_offset = datetime.now() - timedelta(days=14)
         releases = (
             Release.query.filter(Release.date_checked < date_offset)
@@ -78,4 +82,7 @@ def run_command():
                     release, release.date_checked
                 )
             )
-            ReleaseProcessor().update_release(release)
+            ReleaseProcessor(repo=repo).update_release(release)
+            release.date_checked = utils.now()
+            repo.save(release)
+        repo.commit()

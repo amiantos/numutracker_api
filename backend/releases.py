@@ -2,7 +2,7 @@ from sqlalchemy.sql import func
 
 from backend.artists import ArtistProcessor
 from backend import musicbrainz
-from backend.models import Release, UserRelease
+from backend.models import Release, UserRelease, DeletedRelease
 from backend.repo import Repo
 from numu import app as numu_app
 from backend import utils
@@ -85,11 +85,7 @@ class ReleaseProcessor:
             artist_names=mb_release.get("artist-credit-phrase"),
             date_updated=func.now(),
         )
-
-        self.repo.save(release)
-        self.repo.commit()
-
-        self.logger.info("New release saved: {}".format(release))
+        self.logger.info("New release created: {}".format(release))
 
         for mb_artist in mb_release.get("artist-credit"):
             if type(mb_artist) == dict and mb_artist["artist"]:
@@ -101,7 +97,6 @@ class ReleaseProcessor:
                     release.artists.append(artist)
 
         self.repo.save(release)
-        self.repo.commit()
 
         return release
 
@@ -116,23 +111,8 @@ class ReleaseProcessor:
                 follow_method=follow_method,
             )
             notify = True
+            self.repo.save(user_release)
             self.logger.info("New user release created {}".format(user_release))
-
-        user_release.title = release.title
-        user_release.artist_names = release.artist_names
-        user_release.type = release.type
-        user_release.date_release = release.date_release
-        user_release.art = release.art
-        user_release.apple_music_link = release.apple_music_link
-        user_release.spotify_link = release.spotify_link
-        user_release.date_updated = release.date_updated
-
-        for artist in release.artists:
-            user_artist = self.repo.get_user_artist(user_id, artist.mbid)
-            if user_artist:
-                user_release.user_artists.append(user_artist)
-
-        self.repo.save(user_release)
 
         return user_release, notify
 
@@ -155,11 +135,11 @@ class ReleaseProcessor:
 
         if mb_result.get("status") == 404:
             self.logger.error("Release no longer found in MB: {}".format(release))
-            return self.delete_release(release)
+            return self.delete_release(release, "removed from musicbrainz")
 
         if mb_result.get("status") == 200:
             mb_release = mb_result.get("release")
-            return self._update_release(release, mb_release)
+            release = self._update_release(release, mb_release)
 
         return release
 
@@ -173,36 +153,24 @@ class ReleaseProcessor:
                     mb_release.get("id"), mb_release.get("title")
                 )
             )
-            return self.delete_release(release)
+            return self.delete_release(release, "no longer qualifies")
 
-        release.title = mb_release.get("title")
-        release.type = utils.get_release_type(mb_release)
-        release.date_release = date_release
-        release.artist_names = mb_release.get("artist-credit-phrase")
-        release.date_updated = func.now()
-        release.date_checked = func.now()
+        has_release_changed = (
+            release.title != mb_release.get("title")
+            or release.type != utils.get_release_type(mb_release)
+            or release.date_release != date_release
+            or release.artist_names != mb_release.get("artist-credit-phrase")
+        )
 
-        self.repo.save(release)
-        self.repo.commit()
-
-        self.update_user_release(release)
+        if has_release_changed:
+            release.title = mb_release.get("title")
+            release.type = utils.get_release_type(mb_release)
+            release.date_release = date_release
+            release.artist_names = mb_release.get("artist-credit-phrase")
+            release.date_updated = func.now()
+            self.repo.save(release)
 
         return release
-
-    def update_user_release(self, release):
-        self.repo.update_user_releases(
-            {"mbid": release.mbid},
-            {
-                "title": release.title,
-                "artist_names": release.artist_names,
-                "type": release.type,
-                "art": release.art,
-                "date_release": release.date_release,
-                "date_updated": release.date_updated,
-                "date_checked": release.date_checked,
-            },
-        )
-        self.repo.commit()
 
     def update_user_releases(self, artist, user_artist=None, notifications=True):
         releases = self.repo.get_releases_by_artist_mbid(artist.mbid)
@@ -217,7 +185,9 @@ class ReleaseProcessor:
     # Delete
     # ------------------------------------
 
-    def delete_release(self, release):
+    def delete_release(self, release, reason=None):
+        deleted_release = DeletedRelease(mbid=release.mbid, meta=reason)
+        self.repo.save(deleted_release)
         self.repo.delete(release)
         self.repo.commit()
         return None

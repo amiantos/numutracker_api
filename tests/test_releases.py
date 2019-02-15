@@ -27,7 +27,7 @@ class TestReleases(BaseTestCase):
         self.release_processor.update_user_releases(self.artist)
 
         user_releases = self.repo.get_user_releases_for_artist(
-            self.user.id, self.artist.mbid
+            self.user, self.artist.mbid
         )
 
         assert releases_added == 1
@@ -54,7 +54,7 @@ class TestReleases(BaseTestCase):
         assert release.title == "Random Title"
 
         user_release = self.repo.get_user_release(self.user.id, release.mbid)
-        assert user_release.title == "Random Title"
+        assert user_release.release.title == "Random Title"
 
     def test_update_release_with_mock_delete(self):
         release = ReleaseFactory(artist_names=self.artist.name)

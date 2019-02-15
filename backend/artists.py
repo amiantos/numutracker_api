@@ -1,7 +1,7 @@
 from sqlalchemy.sql import func
 
 from backend import musicbrainz
-from backend.models import Artist, UserArtist
+from backend.models import Artist, UserArtist, DeletedArtist
 from backend.repo import Repo
 from backend import utils
 from numu import app as numu_app
@@ -103,7 +103,7 @@ class ArtistProcessor:
             self.logger.error(
                 "Artist {} has been removed from Musicbrainz".format(artist)
             )
-            self.delete_artist(artist)
+            self.delete_artist(artist, "removed from musicbrainz")
             return None
         except Exception as e:
             self.logger.error("Unknown Musicbrainz Error Occurred")
@@ -135,20 +135,7 @@ class ArtistProcessor:
             self.repo.save(artist)
             self.repo.commit()
 
-            self.update_user_artists(artist)
-
         return artist
-
-    def update_user_artists(self, artist):
-        self.repo.update_user_artists(
-            {"mbid": artist.mbid},
-            {
-                "name": artist.name,
-                "sort_name": artist.sort_name,
-                "date_updated": artist.date_updated,
-            },
-        )
-        self.repo.commit()
 
     # ------------------------------------
     # Artist: Replace
@@ -175,19 +162,19 @@ class ArtistProcessor:
                 continue
 
             user_artist.mbid = new_artist.mbid
-            user_artist.name = new_artist.name
-            user_artist.sort_name = new_artist.sort_name
             self.repo.save(user_artist)
         self.repo.commit()
 
-        self.delete_artist(artist)
+        self.delete_artist(artist, "replaced by {}".format(new_artist.mbid))
 
     # ------------------------------------
     # Artist: Delete
     # ------------------------------------
 
-    def delete_artist(self, artist):
+    def delete_artist(self, artist, reason=None):
         self.repo.delete_user_artists_by_mbid(artist.mbid)
+        deleted_artist = DeletedArtist(mbid=artist.mbid, meta=reason)
+        self.repo.save(deleted_artist)
         self.repo.delete(artist)
         self.repo.commit()
 
@@ -195,7 +182,7 @@ class ArtistProcessor:
     # User Artist
     # ------------------------------------
 
-    def add_or_update_user_artist(self, user_id, artist, import_method):
+    def add_user_artist(self, user_id, artist, import_method):
         user_artist = self.repo.get_user_artist(user_id, artist.mbid)
         if user_artist is None:
             user_artist = UserArtist(
@@ -206,11 +193,7 @@ class ArtistProcessor:
                 date_followed=func.now(),
                 following=True,
             )
-        user_artist.name = artist.name
-        user_artist.sort_name = artist.sort_name
-        user_artist.date_updated = func.now()
-
-        self.repo.save(user_artist)
-        self.repo.commit()
+            self.repo.save(user_artist)
+            self.repo.commit()
 
         return user_artist

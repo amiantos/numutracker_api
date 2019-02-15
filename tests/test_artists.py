@@ -42,10 +42,8 @@ class TestArtists(BaseTestCase):
 
         self.artist_processor._update_artist_data(artist, new_data)
 
-        user_artists = self.repo.get_user_artists_by_user_id(self.user.id)
         artist = self.repo.get_artist_by_mbid(artist.mbid)
 
-        assert user_artists[0].name == new_data["name"]
         assert artist.name == new_data["name"]
         assert artist.date_updated is not None
 
@@ -73,7 +71,6 @@ class TestArtists(BaseTestCase):
 
         user_artists = self.repo.get_user_artists_by_user_id(self.user.id)
         assert len(user_artists) == 1
-        assert user_artists[0].name == "Brad Root"
 
     def test_update_artist_from_mb_mocked_new_mbid(self):
         user_artist = UserArtistFactory(user=self.user)
@@ -97,7 +94,7 @@ class TestArtists(BaseTestCase):
 
         user_artists = self.repo.get_user_artists_by_user_id(self.user.id)
         assert len(user_artists) == 1
-        assert user_artists[0].name == artist.name
+        assert user_artists[0].mbid == new_mbid
 
     def test_update_artist_from_mb_mocked_removed(self):
         user_artist = UserArtistFactory(user=self.user)
@@ -116,43 +113,38 @@ class TestArtists(BaseTestCase):
     def test_replace_artist_with_followers(self):
         user_artist = UserArtistFactory(user=self.user)
         self.repo.save(user_artist)
-        artist_mbid = user_artist.artist.mbid
 
         new_artist = ArtistFactory()
 
         self.artist_processor.replace_artist(user_artist.artist, new_artist)
 
         user_artists = self.repo.get_user_artists_by_user_id(self.user.id)
-        assert user_artists[0].name == new_artist.name
-        assert user_artists[0].mbid != artist_mbid
+        assert len(user_artists) == 1
+        assert user_artists[0].mbid == new_artist.mbid
 
     def test_replace_artist_with_followers_and_listeners(self):
         user_artist = UserArtistFactory(user=self.user)
         artist = user_artist.artist
         release = ReleaseFactory(artist_names=artist.name, artists=[artist])
-        user_release = UserReleaseFactory(
-            release=release, user=self.user, user_artists=[user_artist]
-        )
+        user_release = UserReleaseFactory(release=release, user=self.user)
         new_artist = ArtistFactory(name=artist.name)
         self.repo.save(user_release, new_artist)
 
-        user_releases = self.repo.get_user_releases_for_artist(
-            self.user.id, artist.mbid
-        )
+        user_releases = self.repo.get_user_releases_for_artist(self.user, artist.mbid)
         assert len(user_releases) == 1
 
         user_artist = self.repo.get_user_artist(self.user.id, artist.mbid)
-        assert user_artist.name == artist.name
+        assert user_artist.artist.name == artist.name
 
         self.artist_processor.replace_artist(artist, new_artist)
 
         user_releases = self.repo.get_user_releases_for_artist(
-            self.user.id, new_artist.mbid
+            self.user, new_artist.mbid
         )
         assert len(user_releases) == 1
 
         user_artist = self.repo.get_user_artist(self.user.id, new_artist.mbid)
-        assert user_artist.name == artist.name
+        assert user_artist.artist.name == artist.name
 
         user_artists = self.repo.get_user_artists_by_user_id(self.user.id)
         assert len(user_artists) == 1
@@ -161,9 +153,7 @@ class TestArtists(BaseTestCase):
         user_artist = UserArtistFactory(user=self.user)
         artist = user_artist.artist
         release = ReleaseFactory(artist_names=artist.name, artists=[artist])
-        user_release = UserReleaseFactory(
-            release=release, user=self.user, user_artists=[user_artist]
-        )
+        user_release = UserReleaseFactory(release=release, user=self.user)
         new_artist = ArtistFactory(name=artist.name)
         new_user_artist = UserArtistFactory(user=self.user, artist=new_artist)
         self.repo.save(user_release, new_user_artist)
@@ -171,21 +161,19 @@ class TestArtists(BaseTestCase):
         self.artist_processor.replace_artist(artist, new_artist)
 
         user_artist = self.repo.get_user_artist(self.user.id, new_artist.mbid)
-        assert user_artist.name == artist.name
+        assert user_artist.artist.name == artist.name
 
     def test_delete_artist_with_followers(self):
         user_artist = UserArtistFactory(user=self.user)
         artist = user_artist.artist
         release = ReleaseFactory(artist_names=artist.name, artists=[artist])
-        user_release = UserReleaseFactory(
-            release=release, user=self.user, user_artists=[user_artist]
-        )
+        user_release = UserReleaseFactory(release=release, user=self.user)
         new_artist = ArtistFactory(name=artist.name)
         self.repo.save(user_release, new_artist)
 
         artist_mbid = user_artist.artist.mbid
 
-        self.artist_processor.delete_artist(user_artist.artist)
+        self.artist_processor.delete_artist(user_artist.artist, "test deletion")
 
         artist_releases = self.repo.get_artist_releases(artist_mbid)
         assert len(artist_releases) == 0
@@ -197,6 +185,8 @@ class TestArtists(BaseTestCase):
         assert artist is None
 
         user_artist_releases = self.repo.get_user_releases_for_artist(
-            self.user.id, artist_mbid
+            self.user, artist_mbid
         )
         assert user_artist_releases is None
+
+        raise Exception

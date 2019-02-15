@@ -134,7 +134,7 @@ class ImportProcessor:
         return found_artist
 
     def _create_user_artist(self, user_id, import_method, artist):
-        user_artist = self.artist_processor.add_or_update_user_artist(
+        user_artist = self.artist_processor.add_user_artist(
             user_id, artist, import_method
         )
         self.release_processor.update_user_releases(artist, user_artist, False)

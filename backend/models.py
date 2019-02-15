@@ -9,7 +9,9 @@ from sqlalchemy import (
     String,
     Index,
     Text,
+    text,
 )
+from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func, expression
 
@@ -60,6 +62,11 @@ class User(db.Model):
 
 
 class Artist(db.Model):
+    __table_args__ = (
+        Index("artist_name", "name"),
+        Index("artist_sort_name", "sort_name"),
+    )
+
     mbid = Column(String(36), primary_key=True)
     name = Column(String(512), nullable=False)
     sort_name = Column(String(512), nullable=False)
@@ -71,10 +78,9 @@ class Artist(db.Model):
     date_added = Column(DateTime(True), nullable=False, default=func.now())
     date_art_check = Column(DateTime(True), nullable=True, default=None)
     date_checked = Column(DateTime(True), nullable=True, default=None)
-    date_updated = Column(DateTime(True), nullable=True, default=None)
+    date_updated = Column(DateTime(True), nullable=False, default=func.now())
 
-    apple_music_link = Column(String(), nullable=True)
-    spotify_link = Column(String(), nullable=True)
+    links = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
 
     users = relationship("User", secondary="user_artist", lazy=True)
     akas = relationship("ArtistAka", lazy=False)
@@ -82,9 +88,6 @@ class Artist(db.Model):
 
     def __repr__(self):
         return "<Artist {} - {}>".format(self.name, self.mbid)
-
-
-Index("artist_name", Artist.name)
 
 
 class ArtistAka(db.Model):
@@ -118,19 +121,14 @@ class UserArtist(db.Model):
         ),
         primary_key=True,
     )
-    name = Column(String(512), nullable=False)
-    sort_name = Column(String(512), nullable=False)
 
     date_followed = Column(DateTime(True), nullable=False, default=func.now())
     follow_method = Column(String())
     following = Column(Boolean(), default=True, index=True)
-    date_updated = Column(DateTime(True), nullable=True, default=None)
+    date_updated = Column(DateTime(True), nullable=False, default=func.now())
 
     user = relationship("User", lazy=True, uselist=False)
     artist = relationship("Artist", lazy=False)
-    user_releases = db.relationship(
-        "UserRelease", secondary="user_artist_release", lazy=False
-    )
 
     def __repr__(self):
         return "<UserArtist {} - {}>".format(self.user_id, self.mbid)
@@ -165,33 +163,6 @@ class ArtistRelease(db.Model):
     release = relationship("Release", lazy=False)
 
 
-class UserArtistRelease(db.Model):
-    user_artist_uuid = Column(
-        String(),
-        ForeignKey(
-            "user_artist.uuid",
-            onupdate="CASCADE",
-            ondelete="CASCADE",
-            deferrable=True,
-            initially="DEFERRED",
-        ),
-        primary_key=True,
-        index=True,
-    )
-    user_release_uuid = Column(
-        String(),
-        ForeignKey(
-            "user_release.uuid",
-            onupdate="CASCADE",
-            ondelete="CASCADE",
-            deferrable=True,
-            initially="DEFERRED",
-        ),
-        primary_key=True,
-        index=True,
-    )
-
-
 class Release(db.Model):
     mbid = Column(String(36), primary_key=True)
     title = Column(Text, nullable=False)
@@ -200,15 +171,13 @@ class Release(db.Model):
     art = Column(
         Boolean(), nullable=False, default=False, server_default=expression.false()
     )
-
     date_release = Column(Date(), nullable=False, index=True)
+    links = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+
     date_added = Column(DateTime(True), nullable=False, default=func.now())
     date_art_check = Column(DateTime(True), nullable=True, default=None)
-    date_updated = Column(DateTime(True), nullable=False, default=func.now())
     date_checked = Column(DateTime(True), nullable=True, default=func.now())
-
-    apple_music_link = Column(String(), nullable=True, default=None)
-    spotify_link = Column(String(), nullable=True, default=None)
+    date_updated = Column(DateTime(True), nullable=False, default=func.now())
 
     artists = db.relationship("Artist", secondary="artist_release", lazy=False)
 
@@ -241,19 +210,6 @@ class UserRelease(db.Model):
         ),
         primary_key=True,
     )
-    title = Column(Text, nullable=False)
-    artist_names = Column(Text, nullable=False)
-    type = Column(String(36), index=True)
-    art = Column(
-        Boolean(), nullable=False, default=False, server_default=expression.false()
-    )
-
-    date_release = Column(Date(), nullable=False, index=True)
-    date_updated = Column(DateTime(True), nullable=False, default=func.now())
-    date_checked = Column(DateTime(True), nullable=True, default=func.now())
-
-    apple_music_link = Column(String(), nullable=True, default=None)
-    spotify_link = Column(String(), nullable=True, default=None)
 
     listened = Column(Boolean(), default=False)
     date_listened = Column(DateTime(True), nullable=True, default=None)
@@ -262,31 +218,13 @@ class UserRelease(db.Model):
     follow_method = Column(String())
     following = Column(Boolean(), default=True, index=True)
 
+    date_updated = Column(DateTime(True), nullable=False, default=func.now())
+
     release = relationship("Release", lazy=False)
     user = relationship("User", lazy=True, uselist=False)
 
-    user_artists = db.relationship(
-        "UserArtist", secondary="user_artist_release", lazy=False
-    )
-
     def __repr__(self):
         return "<UserRelease {}>".format(self.uuid)
-
-
-Index(
-    "user_releases_listened",
-    UserRelease.user_id,
-    UserRelease.type,
-    UserRelease.listened,
-    UserRelease.date_release.desc(),
-)
-
-Index(
-    "user_releases",
-    UserRelease.user_id,
-    UserRelease.type,
-    UserRelease.date_release.desc(),
-)
 
 
 class UserArtistImport(db.Model):
@@ -348,6 +286,18 @@ class UserNotification(db.Model):
     date_sent = Column(DateTime(True), nullable=True, default=None)
 
     release = relationship(Release, lazy=False, uselist=False)
+
+
+class DeletedRelease(db.Model):
+    mbid = Column(String(36), primary_key=True)
+    date_deleted = Column(DateTime(True), nullable=False, default=func.now())
+    meta = Column(String())
+
+
+class DeletedArtist(db.Model):
+    mbid = Column(String(36), primary_key=True)
+    date_deleted = Column(DateTime(True), nullable=False, default=func.now())
+    meta = Column(String())
 
 
 class Lock(db.Model):

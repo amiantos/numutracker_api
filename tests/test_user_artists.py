@@ -72,7 +72,7 @@ class TestUserArtists(BaseTestCase):
         user_artist = self.repo.get_user_artist(
             user_id=self.user.id, mbid="b7ffd2af-418f-4be2-bdd1-22f8b48613da"
         )
-        assert user_artist.name == "Nine Inch Nails"
+        assert user_artist.artist.name == "Nine Inch Nails"
 
     def test_import_user_artists_all_no_mb(self):
         artist = ArtistFactory(
@@ -88,7 +88,7 @@ class TestUserArtists(BaseTestCase):
         user_artist = self.repo.get_user_artist(
             user_id=self.user.id, mbid="b7ffd2af-418f-4be2-bdd1-22f8b48613da"
         )
-        assert user_artist.name == "Nine Inch Nails"
+        assert user_artist.artist.name == "Nine Inch Nails"
 
     def test_import_user_artists_all_no_mb_not_found(self):
         artist_import = ArtistImportFactory(
@@ -117,7 +117,7 @@ class TestUserArtists(BaseTestCase):
             user_id=self.user.id, mbid="f123ef70-f563-43c2-b0e6-8f9afc0a38ad"
         )
         user_releases = self.repo.get_user_releases_for_artist(
-            user_id=self.user.id, mbid="f123ef70-f563-43c2-b0e6-8f9afc0a38ad"
+            user=self.user, mbid="f123ef70-f563-43c2-b0e6-8f9afc0a38ad"
         )
-        assert user_artist.name == "Tulsa"
+        assert user_artist.artist.name == "Tulsa"
         assert len(user_releases) > 0

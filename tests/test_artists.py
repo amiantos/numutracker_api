@@ -23,6 +23,16 @@ class TestArtists(BaseTestCase):
         artist = self.artist_processor.add_artist(name="Nine Inch Nails")
         assert artist.name == "Nine Inch Nails"
 
+    def test_add_artist_blacklisted_mbid(self):
+        artist = self.artist_processor.add_artist(
+            mbid="125ec42a-7229-4250-afc5-e057484327fe"
+        )
+        assert artist is None
+
+    def test_add_artist_blacklisted_mbid_by_name(self):
+        artist = self.artist_processor.add_artist(name="Chromalox")
+        assert artist is None
+
     def test_add_artist_from_mb_by_mbid(self):
         artist = self.artist_processor.add_artist(
             mbid="b7ffd2af-418f-4be2-bdd1-22f8b48613da"

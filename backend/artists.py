@@ -19,7 +19,7 @@ class ArtistProcessor:
 
     def _extract_artist_from_mb_result(self, mb_result):
         result_status = mb_result.get("status")
-        if result_status == 404:
+        if result_status == 404 or mb_result.get("artist") is None:
             raise NotFoundError
 
         if result_status == 200:

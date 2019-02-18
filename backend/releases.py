@@ -172,6 +172,15 @@ class ReleaseProcessor:
             release.artist_names = mb_release.get("artist-credit-phrase")
             release.date_updated = func.now()
 
+            for mb_artist in mb_release.get("artist-credit"):
+                if type(mb_artist) == dict and mb_artist["artist"]:
+                    artist = self.artist_processor.add_artist(
+                        mbid=mb_artist["artist"]["id"]
+                    )
+                    if artist and artist not in release.artists:
+                        self.logger.info("Artist credit created for {}".format(artist))
+                        release.artists.append(artist)
+
         release.date_checked = func.now()
         self.repo.save(release)
 

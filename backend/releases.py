@@ -171,7 +171,9 @@ class ReleaseProcessor:
             release.date_release = date_release
             release.artist_names = mb_release.get("artist-credit-phrase")
             release.date_updated = func.now()
-            self.repo.save(release)
+
+        release.date_checked = func.now()
+        self.repo.save(release)
 
         return release
 

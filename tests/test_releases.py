@@ -33,6 +33,15 @@ class TestReleases(BaseTestCase):
         assert releases_added == 1
         assert len(user_releases) == 1
 
+    def test_update_release_no_update(self):
+        """When a release is updated with identical information, date_checked should update but not date_updated."""
+        self.release_processor.add_release("dd5d8373-4ae3-3908-9235-c871e49ebd76")
+        release = self.repo.get_release_by_mbid("dd5d8373-4ae3-3908-9235-c871e49ebd76")
+
+        updated_release = self.release_processor.update_release(release)
+
+        assert updated_release.date_updated != updated_release.date_checked
+
     def test_update_release_with_mock(self):
         release = ReleaseFactory(artist_names=self.artist.name)
         release.artists.append(self.artist)

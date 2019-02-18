@@ -146,16 +146,6 @@ class ReleaseProcessor:
 
         return release
 
-    def _has_changed(self, release, mb_release, date_release):
-        if (
-            release.title != mb_release.get("title")
-            or release.type != utils.get_release_type(mb_release)
-            or release.date_release != date_release
-            or release.artist_names != mb_release.get("artist-credit-phrase")
-        ):
-            return True
-        return False
-
     def _update_release(self, release, mb_release):
         date_release = utils.convert_mb_release_date(
             mb_release.get("first-release-date")
@@ -168,8 +158,14 @@ class ReleaseProcessor:
             )
             return self.delete_release(release, "no longer qualifies")
 
-        if self._has_changed(release, mb_release, date_release):
-            self.logger.info("Release has changed... updating.")
+        has_release_changed = (
+            release.title != mb_release.get("title")
+            or release.type != utils.get_release_type(mb_release)
+            or release.date_release.strftime("%Y-%m-%d") != date_release
+            or release.artist_names != mb_release.get("artist-credit-phrase")
+        )
+
+        if has_release_changed:
             release.title = mb_release.get("title")
             release.type = utils.get_release_type(mb_release)
             release.date_release = date_release

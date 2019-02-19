@@ -32,6 +32,15 @@ class TestUserArtists(BaseTestCase):
         assert artists_added == 3
         assert artist_import.import_name == "Nine Inch Nails"
 
+    def test_save_imports_duplicates(self):
+        repo = Repo(autocommit=False)
+        import_processor = ImportProcessor(repo=repo)
+        artists = [{"name": "Eels"}, {"name": "Eels", "mbid": "some-mbid"}]
+        artists_added = import_processor.save_imports(self.user.id, artists, "test")
+        artist_import = repo.get_artist_import(self.user.id, "Eels")
+        assert artists_added == 1
+        assert artist_import.import_name == "Eels"
+
     def test_save_imports_empty(self):
         artists = []
         artists_added = self.import_processor.save_imports(

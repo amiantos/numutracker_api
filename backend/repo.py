@@ -136,6 +136,14 @@ class Repo:
         ).all()
 
     def get_artist_import(self, user_id, name=None, mbid=None):
+        if mbid and name:
+            return UserArtistImport.query.filter(
+                UserArtistImport.user_id == user_id,
+                or_(
+                    UserArtistImport.import_mbid == mbid,
+                    UserArtistImport.import_name == name,
+                ),
+            ).first()
         if mbid:
             return UserArtistImport.query.filter_by(
                 user_id=user_id, import_mbid=mbid

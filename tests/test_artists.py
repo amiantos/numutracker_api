@@ -198,5 +198,3 @@ class TestArtists(BaseTestCase):
             self.user, artist_mbid
         )
         assert user_artist_releases is None
-
-        raise Exception

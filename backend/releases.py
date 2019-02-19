@@ -6,6 +6,7 @@ from backend.models import Release, UserRelease, DeletedRelease
 from backend.repo import Repo
 from numu import app as numu_app
 from backend import utils
+from datetime import datetime
 
 
 class NotFoundError(Exception):
@@ -158,10 +159,16 @@ class ReleaseProcessor:
             )
             return self.delete_release(release, "no longer qualifies")
 
+        current_date_release = ""
+        try:
+            current_date_release = release.date_release.strftime("%Y-%m-%d")
+        except AttributeError:
+            current_date_release = release.date_release
+
         has_release_changed = (
             release.title != mb_release.get("title")
             or release.type != utils.get_release_type(mb_release)
-            or release.date_release.strftime("%Y-%m-%d") != date_release
+            or current_date_release != date_release
             or release.artist_names != mb_release.get("artist-credit-phrase")
         )
 

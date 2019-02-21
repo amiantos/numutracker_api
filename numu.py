@@ -21,6 +21,16 @@ import backend.models
 
 migrate = Migrate(app, db)
 
+
+err_handler = RotatingFileHandler("numu-error.log", maxBytes=1000000, backupCount=5)
+err_handler.setFormatter(
+    logging.Formatter(
+        "%(asctime)s | %(pathname)s:%(lineno)d | %(funcName)s | %(levelname)s | %(message)s"
+    )
+)
+err_handler.setLevel(logging.DEBUG)
+app.logger.addHandler(err_handler)
+
 handler = RotatingFileHandler("numu.log", maxBytes=1000000, backupCount=5)
 handler.setFormatter(
     logging.Formatter(
@@ -29,6 +39,7 @@ handler.setFormatter(
 )
 handler.setLevel(logging.DEBUG)
 app.logger.addHandler(handler)
+
 app.logger.setLevel(logging.DEBUG)
 
 

@@ -70,7 +70,6 @@ class UserReleaseFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = UserReleaseModel
         sqlalchemy_session = db.session
 
-    uuid = factory.fuzzy.FuzzyAttribute(lambda: utils.uuid())
     user_id = factory.SelfAttribute("user.id")
     mbid = factory.SelfAttribute("release.mbid")
 
@@ -83,7 +82,6 @@ class UserArtistFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = UserArtistModel
         sqlalchemy_session = db.session
 
-    uuid = factory.fuzzy.FuzzyAttribute(lambda: utils.uuid())
     user_id = factory.SelfAttribute("user.id")
     mbid = factory.SelfAttribute("artist.mbid")
 

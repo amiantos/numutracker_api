@@ -186,7 +186,6 @@ class ArtistProcessor:
         user_artist = self.repo.get_user_artist(user_id, artist.mbid)
         if user_artist is None:
             user_artist = UserArtist(
-                uuid=utils.uuid(),
                 user_id=user_id,
                 mbid=artist.mbid,
                 follow_method=import_method,

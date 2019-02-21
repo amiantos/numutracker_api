@@ -110,10 +110,7 @@ class ReleaseProcessor:
         user_release = self.repo.get_user_release(user_id, release.mbid)
         if user_release is None:
             user_release = UserRelease(
-                uuid=utils.uuid(),
-                user_id=user_id,
-                mbid=release.mbid,
-                follow_method=follow_method,
+                user_id=user_id, mbid=release.mbid, follow_method=follow_method
             )
             notify = True
             self.repo.save(user_release)

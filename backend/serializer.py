@@ -75,7 +75,6 @@ def user_releases_quick(tuple):
     }
     if user_release:
         serialized["userData"] = {
-            "uuid": user_release.uuid,
             "listened": user_release.listened,
             "following": user_release.following,
             "dateListened": user_release.date_listened,
@@ -98,7 +97,6 @@ def user_release(user_release):
         "links": user_release.release.links,
         "artists": [artist(x) for x in user_release.release.artists],
         "userData": {
-            "uuid": user_release.uuid,
             "listened": user_release.listened,
             "following": user_release.following,
             "dateListened": user_release.date_listened,
@@ -118,7 +116,6 @@ def user_artist(user_artist):
         "art": get_art_urls(user_artist.artist),
         "dateUpdated": user_artist.artist.date_updated,
         "userData": {
-            "uuid": user_artist.uuid,
             "following": user_artist.following,
             "dateFollowed": user_artist.date_followed,
             "dateUpdated": user_artist.date_updated,

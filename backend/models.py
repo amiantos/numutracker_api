@@ -104,7 +104,6 @@ class ArtistAka(db.Model):
 
 
 class UserArtist(db.Model):
-    uuid = Column(String(), unique=True, index=True, nullable=False)
     user_id = Column(
         Integer,
         ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"),
@@ -186,7 +185,6 @@ class Release(db.Model):
 
 
 class UserRelease(db.Model):
-    uuid = Column(String(), unique=True, index=True, nullable=False)
     user_id = Column(
         Integer,
         ForeignKey(
@@ -224,7 +222,7 @@ class UserRelease(db.Model):
     user = relationship("User", lazy=True, uselist=False)
 
     def __repr__(self):
-        return "<UserRelease {}>".format(self.uuid)
+        return "<UserRelease {} - {}>".format(self.user_id, self.mbid)
 
 
 class UserArtistImport(db.Model):

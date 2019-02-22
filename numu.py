@@ -31,15 +31,6 @@ err_handler.setFormatter(
 err_handler.setLevel(logging.ERROR)
 app.logger.addHandler(err_handler)
 
-handler = RotatingFileHandler("numu.log", maxBytes=1000000, backupCount=5)
-handler.setFormatter(
-    logging.Formatter(
-        "%(asctime)s | %(pathname)s:%(lineno)d | %(funcName)s | %(levelname)s | %(message)s"
-    )
-)
-handler.setLevel(logging.DEBUG)
-app.logger.addHandler(handler)
-
 app.logger.setLevel(logging.DEBUG)
 
 

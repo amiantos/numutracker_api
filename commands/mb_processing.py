@@ -82,7 +82,9 @@ def run_command():
                     release, release.date_checked
                 )
             )
-            ReleaseProcessor(repo=repo).update_release(release)
-            release.date_checked = utils.now()
-            repo.save(release)
+            release = ReleaseProcessor(repo=repo).update_release(release)
+            if release:
+                # If release was deleted, it'll be None by the time we get here.
+                release.date_checked = utils.now()
+                repo.save(release)
         repo.commit()

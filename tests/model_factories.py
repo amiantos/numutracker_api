@@ -1,5 +1,3 @@
-from uuid import uuid4
-
 import backend.utils as utils
 import factory
 import factory.fuzzy
@@ -11,7 +9,7 @@ from backend.models import (
     UserArtistImport as UserArtistImportModel,
     UserRelease as UserReleaseModel,
 )
-from numu import db, bcrypt
+from numu import db
 
 
 class UserFactory(factory.alchemy.SQLAlchemyModelFactory):

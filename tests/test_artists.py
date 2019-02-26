@@ -120,6 +120,20 @@ class TestArtists(BaseTestCase):
         user_artists = self.repo.get_user_artists_by_user_id(self.user.id)
         assert len(user_artists) == 0
 
+    def test_replace_artist_when_both_have_releases(self):
+        artist = ArtistFactory()
+        old_artist_mbid = artist.mbid
+        release = ReleaseFactory()
+        artist.releases.append(release)
+        new_artist = ArtistFactory()
+        new_artist.releases.append(release)
+        self.repo.save(artist, new_artist)
+
+        self.artist_processor.replace_artist(artist, new_artist)
+
+        old_artist = self.repo.get_artist_by_mbid(old_artist_mbid)
+        assert old_artist is None
+
     def test_replace_artist_with_followers(self):
         user_artist = UserArtistFactory(user=self.user)
         self.repo.save(user_artist)

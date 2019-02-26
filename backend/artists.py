@@ -3,7 +3,6 @@ from sqlalchemy.sql import func
 from backend import musicbrainz
 from backend.models import Artist, UserArtist, DeletedArtist
 from backend.repo import Repo
-from backend import utils
 from numu import app as numu_app
 
 
@@ -148,8 +147,12 @@ class ArtistProcessor:
         # Update all artist_releases
         artist_releases = self.repo.get_artist_releases(artist.mbid)
         for artist_release in artist_releases:
-            artist_release.artist_mbid = new_artist.mbid
-            self.repo.save(artist_release)
+            existing_artist_release = self.repo.get_artist_release(
+                new_artist.mbid, artist_release.release_mbid
+            )
+            if existing_artist_release is None:
+                artist_release.artist_mbid = new_artist.mbid
+                self.repo.save(artist_release)
         self.repo.commit()
 
         # Update all user_artists

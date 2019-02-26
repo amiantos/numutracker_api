@@ -67,6 +67,8 @@ def run_command():
                 releases_added = ReleaseProcessor().add_releases(updated_artist)
                 numu_app.logger.info("Added Releases: {}".format(releases_added))
 
+        repo.commit()
+
         # Scan releases
         date_offset = datetime.now() - timedelta(days=14)
         releases = (

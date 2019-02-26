@@ -95,6 +95,11 @@ class Repo:
     # Artist Release
     # -----------------------------------
 
+    def get_artist_release(self, artist_mbid, release_mbid):
+        return ArtistRelease.query.filter_by(
+            artist_mbid=artist_mbid, release_mbid=release_mbid
+        ).first()
+
     def get_artist_releases(self, mbid):
         return ArtistRelease.query.filter_by(artist_mbid=mbid).all()
 

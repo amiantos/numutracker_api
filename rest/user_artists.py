@@ -10,7 +10,7 @@ from sqlalchemy import or_
 
 from . import app
 
-PER_PAGE = 10000
+PER_PAGE = 50
 
 
 def paginate_query(query, offset, type):

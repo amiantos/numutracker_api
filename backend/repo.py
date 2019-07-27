@@ -9,6 +9,7 @@ from backend.models import (
     UserArtist,
     UserArtistImport,
     ArtistRelease,
+    DeletedArtist,
 )
 from sqlalchemy.orm import joinedload
 from sqlalchemy import and_
@@ -75,6 +76,9 @@ class Repo:
         Update all user artists matching the where filter
         """
         UserArtist.query.filter_by(**where).update(updates)
+
+    def get_deleted_artist(self, mbid):
+        return DeletedArtist.query.filter_by(mbid=mbid).first()
 
     # -----------------------------------
     # Release

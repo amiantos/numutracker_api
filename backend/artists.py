@@ -176,8 +176,10 @@ class ArtistProcessor:
 
     def delete_artist(self, artist, reason=None):
         self.repo.delete_user_artists_by_mbid(artist.mbid)
-        deleted_artist = DeletedArtist(mbid=artist.mbid, meta=reason)
-        self.repo.save(deleted_artist)
+        deleted_artist = self.repo.get_deleted_artist(artist.mbid)
+        if not deleted_artist:
+            deleted_artist = DeletedArtist(mbid=artist.mbid, meta=reason)
+            self.repo.save(deleted_artist)
         self.repo.delete(artist)
         self.repo.commit()
 

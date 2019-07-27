@@ -1,4 +1,4 @@
-from backend.models import Artist, ArtistAka
+from backend.models import Artist, ArtistAka, DeletedArtist
 from numu import app as numu_app, db
 from backend.utils import grab_json
 
@@ -26,7 +26,8 @@ def import_artists():
 
         for artist in data:
             found_artist = Artist.query.filter_by(mbid=artist["mbid"]).first()
-            if found_artist is None:
+            deleted_artist = DeletedArtist.query.filter_by(mbid=artist["mbid"]).first()
+            if found_artist is None and deleted_artist is None:
                 print("ADDED: {} - {}".format(artist["name"], artist["mbid"]))
                 new_artist = Artist(
                     mbid=artist["mbid"],

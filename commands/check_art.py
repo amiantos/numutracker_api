@@ -13,7 +13,10 @@ def check_art():
     lock = Lock.query.filter_by(process_name=process_name).first()
     if lock is None:
         lock = Lock(process_name=process_name, lock_acquired=False)
-    if lock.lock_acquired is False:
+    if lock.lock_acquired is False or (
+        lock.lock_acquired is True
+        and lock.date_acquired < utils.now() - timedelta(hours=1)
+    ):
         lock.lock_acquired = True
         lock.date_acquired = utils.now()
         repo.save(lock)

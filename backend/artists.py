@@ -98,7 +98,7 @@ class ArtistProcessor:
     def _update_artist(self, artist, mb_result):
         try:
             mb_artist = self._extract_artist_from_mb_result(mb_result)
-        except NotFoundError as e:
+        except NotFoundError:
             self.logger.error(
                 "Artist {} has been removed from Musicbrainz".format(artist)
             )
@@ -158,14 +158,12 @@ class ArtistProcessor:
         # Update all user_artists
         user_artists = self.repo.get_user_artists_by_mbid(artist.mbid, following=False)
         for user_artist in user_artists:
-            new_user_artist = self.repo.get_user_artist(
+            existing_user_artist = self.repo.get_user_artist(
                 user_artist.user_id, new_artist.mbid
             )
-            if new_user_artist:
-                continue
-
-            user_artist.mbid = new_artist.mbid
-            self.repo.save(user_artist)
+            if existing_user_artist is None:
+                user_artist.mbid = new_artist.mbid
+                self.repo.save(user_artist)
         self.repo.commit()
 
         self.delete_artist(artist, "replaced by {}".format(new_artist.mbid))

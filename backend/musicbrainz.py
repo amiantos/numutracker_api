@@ -56,6 +56,7 @@ def get_artist(artist_mbid):
     try:
         result = mbz.get_artist_by_id(artist_mbid)
     except mbz.ResponseError as err:
+        print(err)
         status = err.cause.code
     else:
         status = 404

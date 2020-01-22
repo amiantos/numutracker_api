@@ -23,6 +23,7 @@ class ArtistProcessor:
             raise NotFoundError
 
         if result_status == 200 and mb_result.get("artist") is None:
+            # FIXME - Verify this is only happening to unknown/blacklisted artists
             raise NotFoundError
 
         if result_status == 200:

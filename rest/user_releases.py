@@ -65,7 +65,7 @@ def user_artist_releases(mbid):
 
     query = (
         db.session.query(ArtistRelease, Release, UserRelease)
-        .join(Release)
+        .join(Release, Release.mbid == ArtistRelease.release_mbid)
         .filter(ArtistRelease.artist_mbid == mbid)
         .outerjoin(
             UserRelease,

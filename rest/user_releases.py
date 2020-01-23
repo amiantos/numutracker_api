@@ -41,8 +41,22 @@ def user_releases():
     )
     query = (
         db.session.query(ArtistRelease, Release, UserRelease)
-        .join(Release)
-        .filter(ArtistRelease.artist_mbid.in_(artist_mbids))
+        .join(Release, Release.mbid == ArtistRelease.release_mbid)
+        .filter(
+            ArtistRelease.artist_mbid.in_(artist_mbids),
+            Release.type.in_(g.user.filters),
+        )
+        .outerjoin(
+            UserRelease,
+            and_(UserRelease.mbid == Release.mbid, UserRelease.user_id == g.user.id),
+        )
+        .order_by(Release.date_release.desc())
+    )
+    data = paginate_query(query, offset, "user_release_quick")
+
+    return response.success(data)
+
+
         .outerjoin(
             UserRelease,
             and_(UserRelease.mbid == Release.mbid, UserRelease.user_id == g.user.id),
@@ -66,7 +80,7 @@ def user_artist_releases(mbid):
     query = (
         db.session.query(ArtistRelease, Release, UserRelease)
         .join(Release, Release.mbid == ArtistRelease.release_mbid)
-        .filter(ArtistRelease.artist_mbid == mbid)
+        .filter(ArtistRelease.artist_mbid == mbid, Release.type.in_(g.user.filters),)
         .outerjoin(
             UserRelease,
             and_(UserRelease.mbid == Release.mbid, UserRelease.user_id == g.user.id),

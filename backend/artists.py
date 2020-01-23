@@ -63,7 +63,7 @@ class ArtistProcessor:
     def _process_mb_result(self, mb_result):
         try:
             mb_artist = self._extract_artist_from_mb_result(mb_result)
-        except NotFoundError as e:
+        except NotFoundError:
             self.logger.error("Artist not found in MusicBrainz")
             return None
         except Exception as e:

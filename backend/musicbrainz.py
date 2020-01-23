@@ -118,4 +118,3 @@ def get_artist_releases(artist_mbid):
             release_groups.append(release["release-group"])
 
     return {"status": 200, "releases": release_groups}
-

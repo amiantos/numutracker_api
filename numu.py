@@ -30,7 +30,6 @@ err_handler.setFormatter(
 )
 err_handler.setLevel(logging.ERROR)
 app.logger.addHandler(err_handler)
-
 app.logger.setLevel(logging.DEBUG)
 
 

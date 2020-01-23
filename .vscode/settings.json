@@ -7,4 +7,9 @@
     "python.linting.lintOnSave": true,
     "python.formatting.provider": "black",
     "editor.formatOnSave": true,
+    "cSpell.words": [
+        "mbid",
+        "musicbrainz",
+        "numu"
+    ],
 }

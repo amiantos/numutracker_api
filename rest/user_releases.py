@@ -57,6 +57,19 @@ def user_releases():
     return response.success(data)
 
 
+@app.route("/user/releases/global", methods=["GET"])
+@auth.login_required
+@require_apikey
+def user_releases_global():
+    try:
+        offset = int(request.args.get("offset", 0))
+    except ValueError:
+        offset = 0
+
+    query = (
+        db.session.query(ArtistRelease, Release, UserRelease)
+        .join(Release, Release.mbid == ArtistRelease.release_mbid)
+        .filter(Release.type.in_(g.user.filters),)
         .outerjoin(
             UserRelease,
             and_(UserRelease.mbid == Release.mbid, UserRelease.user_id == g.user.id),

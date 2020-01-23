@@ -13,7 +13,7 @@ requests==2.21.0
 simpleflock==0.0.3
 Pillow==5.4.1
 pytest
-uWSGI==2.0.17.1
+uWSGI
 factory-boy
 pytz
 pytest-cov

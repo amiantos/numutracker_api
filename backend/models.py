@@ -78,7 +78,9 @@ class Artist(db.Model):
     date_added = Column(DateTime(True), nullable=False, default=func.now())
     date_art_check = Column(DateTime(True), nullable=True, default=None)
     date_checked = Column(DateTime(True), nullable=True, default=None)
-    date_updated = Column(DateTime(True), nullable=False, default=func.now())
+    date_updated = Column(
+        DateTime(True), nullable=False, default=func.now(), index=True
+    )
 
     links = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
 
@@ -124,7 +126,9 @@ class UserArtist(db.Model):
     date_followed = Column(DateTime(True), nullable=False, default=func.now())
     follow_method = Column(String())
     following = Column(Boolean(), default=True, index=True)
-    date_updated = Column(DateTime(True), nullable=False, default=func.now())
+    date_updated = Column(
+        DateTime(True), nullable=False, default=func.now(), index=True
+    )
 
     user = relationship("User", lazy=True, uselist=False)
     artist = relationship("Artist", lazy=False)
@@ -176,7 +180,9 @@ class Release(db.Model):
     date_added = Column(DateTime(True), nullable=False, default=func.now())
     date_art_check = Column(DateTime(True), nullable=True, default=None)
     date_checked = Column(DateTime(True), nullable=True, default=func.now())
-    date_updated = Column(DateTime(True), nullable=False, default=func.now())
+    date_updated = Column(
+        DateTime(True), nullable=False, default=func.now(), index=True
+    )
 
     artists = db.relationship("Artist", secondary="artist_release", lazy=False)
 
@@ -216,7 +222,9 @@ class UserRelease(db.Model):
     follow_method = Column(String())
     following = Column(Boolean(), default=True, index=True)
 
-    date_updated = Column(DateTime(True), nullable=False, default=func.now())
+    date_updated = Column(
+        DateTime(True), nullable=False, default=func.now(), index=True
+    )
 
     release = relationship("Release", lazy=False)
     user = relationship("User", lazy=True, uselist=False)

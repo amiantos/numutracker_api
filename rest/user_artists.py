@@ -10,7 +10,7 @@ from sqlalchemy import or_
 
 from . import app
 
-PER_PAGE = 50
+PER_PAGE = 10000
 
 
 def paginate_query(query, offset, type):
@@ -32,32 +32,11 @@ def paginate_query(query, offset, type):
 def user_artists():
     try:
         offset = int(request.args.get("offset", 0))
-        date_offset = int(request.args.get("date_offset", 0))
     except ValueError:
         offset = 0
-        date_offset = None
 
-    if date_offset is not None:
-        try:
-            date_offset = datetime.fromtimestamp(date_offset)
-        except TypeError:
-            date_offset = None
-
-    if date_offset:
-        query = (
-            UserArtist.query.join(Artist)
-            .filter(
-                UserArtist.user_id == g.user.id,
-                or_(
-                    UserArtist.date_updated >= date_offset,
-                    Artist.date_updated == date_offset,
-                ),
-            )
-            .order_by(UserArtist.date_updated.desc())
-        )
-    else:
-        query = UserArtist.query.filter(UserArtist.user_id == g.user.id).order_by(
-            UserArtist.date_updated.desc()
-        )
+    query = UserArtist.query.filter(UserArtist.user_id == g.user.id).order_by(
+        UserArtist.date_updated.desc()
+    )
     data = paginate_query(query, offset, "user_artist")
     return response.success(data)

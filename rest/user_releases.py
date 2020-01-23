@@ -11,7 +11,7 @@ from sqlalchemy import and_, or_
 
 from . import app
 
-PER_PAGE = 50
+PER_PAGE = 200
 
 
 def paginate_query(query, offset, type):
@@ -33,46 +33,23 @@ def paginate_query(query, offset, type):
 def user_releases():
     try:
         offset = int(request.args.get("offset", 0))
-        date_offset = int(request.args.get("date_offset", 0))
     except ValueError:
         offset = 0
-        date_offset = None
 
-    if date_offset is not None:
-        try:
-            date_offset = datetime.fromtimestamp(date_offset)
-        except TypeError:
-            date_offset = None
-
-    if date_offset:
-        numu_app.logger.info("Offset Date: {}".format(date_offset))
-        query = UserRelease.query.join(Release).filter(
-            UserRelease.user_id == g.user.id,
-            or_(
-                UserRelease.date_updated >= date_offset,
-                Release.date_updated >= date_offset,
-            ),
+    artist_mbids = (
+        db.session.query(UserArtist.mbid).filter(UserArtist.user_id == g.user.id).all()
+    )
+    query = (
+        db.session.query(ArtistRelease, Release, UserRelease)
+        .join(Release)
+        .filter(ArtistRelease.artist_mbid.in_(artist_mbids))
+        .outerjoin(
+            UserRelease,
+            and_(UserRelease.mbid == Release.mbid, UserRelease.user_id == g.user.id),
         )
-        data = paginate_query(query, offset, "user_release")
-    else:
-        artist_mbids = (
-            db.session.query(UserArtist.mbid)
-            .filter(UserArtist.user_id == g.user.id)
-            .all()
-        )
-        query = (
-            db.session.query(ArtistRelease, Release, UserRelease)
-            .join(Release)
-            .filter(ArtistRelease.artist_mbid.in_(artist_mbids))
-            .outerjoin(
-                UserRelease,
-                and_(
-                    UserRelease.mbid == Release.mbid, UserRelease.user_id == g.user.id
-                ),
-            )
-            .order_by(Release.date_release.desc())
-        )
-        data = paginate_query(query, offset, "user_release_quick")
+        .order_by(Release.date_release.desc())
+    )
+    data = paginate_query(query, offset, "user_release_quick")
 
     return response.success(data)
 

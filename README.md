@@ -2,6 +2,8 @@
 
 This is the home for the third version of the Numu Tracker API. If you're not familiar with what Numu Tracker is, check out [the iOS App repository](https://www.github.com/amiantos/numutracker_ios) to see what it is all about, or keep reading.
 
+**IMPORTANT NOTE:** Numu Tracker shut down as of January, 2020, and development has ceased on this API.
+
 ## About
 
 The Numu Tracker API is a service that allows users to follow a list of musicians, and receive a personalized 'to-do list' of releases by those musicians that they need to listen to. Users can mark releases as "Listened" to check them off their list. Releases by artists can also be browsed individually, and the personalized release list can be filtered in various ways (by Album, EP, Single, Live Albums, Remixes, Other). Numu Tracker can also provide simple statistics letting a user know how much of their releases they've listened to. In the future, the service will provide recommendations from outside the user's library.
